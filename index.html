@@ -160,6 +160,13 @@
   .rv p { margin: 0 0 4px; font-size: 14px; overflow-wrap: anywhere; }
   .rv small { color: var(--muted); display: block; margin-bottom: 8px; }
   .rv .row2 button { min-height: 38px; cursor: pointer; }
+  .banner { display: flex; align-items: center; gap: 14px; background: var(--ink); color: var(--page); border: 0; padding: 14px 16px; }
+  .banner[hidden] { display: none; }
+  .banner .bn { flex: 1; min-width: 0; display: grid; gap: 2px; }
+  .banner .bn span { font-size: 13px; opacity: .8; }
+  .banner button { width: auto; min-width: 110px; flex: none; cursor: pointer; }
+  details.adv { margin-top: 16px; }
+  details.adv summary { font-size: 13px; color: var(--muted); }
   .picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .pick { width: auto !important; min-height: 38px !important; padding: 4px 12px !important; border-radius: 999px !important; font-size: 14px; color: var(--ink2) !important; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
   .pick[aria-pressed=true] { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; font-weight: 600; }
@@ -230,6 +237,11 @@
       <div class="chip"><span>Заработано всего</span><b id="totalIncome">0</b></div>
       <div class="chip"><span>Потрачено всего</span><b id="totalExpense">0</b></div>
     </div>
+  </section>
+
+  <section class="card banner" id="pushBanner" hidden>
+    <div class="bn"><b id="pushBannerTitle">🔔 Включить уведомления</b><span id="pushBannerText">О каждом списании с карты — сразу на телефон</span></div>
+    <button type="button" class="primary" id="pushBannerBtn">Включить</button>
   </section>
 
   <section class="card" id="reviewCard" hidden>
@@ -341,16 +353,27 @@
   <section class="card">
     <details id="syncDetails">
       <summary>🏦 Автоввод расходов из банка</summary>
-      <p class="hint">Телефон пересылает SMS от банка на ваш личный сервер, а приложение забирает оттуда новые операции и вносит их само. Пошаговая инструкция — <a href="setup.html">здесь</a>.</p>
+      <p class="hint">Телефон пересылает SMS от банка на ваш личный сервер, а приложение забирает оттуда новые операции и вносит их само. Подключение происходит по личной ссылке, вводить ничего не нужно.</p>
+      <div class="hint" id="syncStatus"></div>
       <div class="stack">
-        <input id="syncUrl" type="url" placeholder="Адрес сервера, https://….workers.dev" autocomplete="off" aria-label="Адрес сервера">
-        <input id="syncToken" type="password" placeholder="Ключ доступа" autocomplete="off" aria-label="Ключ доступа">
-        <div class="row2">
-          <button type="button" class="primary" id="syncSave">Сохранить и проверить</button>
-          <button type="button" id="syncNow">Обновить сейчас</button>
-        </div>
-        <div class="hint" id="syncStatus"></div>
+        <button type="button" id="syncNow">Проверить новые операции сейчас</button>
       </div>
+      <h3 class="sub">Быстрая команда для iPhone</h3>
+      <p class="hint">Один раз создайте автоматизацию на SMS от банка. Значения копируются одним нажатием, порядок действий — в <a href="setup.html">инструкции</a>.</p>
+      <div class="stack">
+        <div class="row2">
+          <button type="button" id="copyUrl">Скопировать адрес</button>
+          <button type="button" id="copyAuth">Скопировать ключ</button>
+        </div>
+      </div>
+      <details class="adv">
+        <summary>Подключить вручную</summary>
+        <div class="stack">
+          <input id="syncUrl" type="url" placeholder="Адрес сервера, https://….workers.dev" autocomplete="off" aria-label="Адрес сервера">
+          <input id="syncToken" type="password" placeholder="Ключ доступа" autocomplete="off" aria-label="Ключ доступа">
+          <button type="button" class="primary" id="syncSave">Сохранить и проверить</button>
+        </div>
+      </details>
       <h3 class="sub">🔔 Уведомления на телефон</h3>
       <p class="hint">При каждом сообщении от банка на телефон придёт уведомление с суммой, категорией и остатком на карте; по нажатию операция внесётся в приложение. На iPhone работает, если открыть приложение с иконки на экране «Домой» (iOS 16.4 и новее).</p>
       <div class="stack">
@@ -815,14 +838,29 @@ function fillForm(p, note) {
 
 /* ── синхронизация с «почтовым ящиком» ── */
 const SYNC_KEY = 'budget.sync', REVIEW_KEY = 'budget.review';
+const DEFAULT_SERVER = 'https://finansy-inbox.artukasi.workers.dev';   // адрес не секретный; секрет — только ключ
 let sync = { url: '', token: '', seen: [], last: 0 };
 let review = [];
 let syncing = false;
 function loadSync() {
   try { sync = { ...sync, ...JSON.parse(localStorage.getItem(SYNC_KEY)) }; } catch {}
   try { review = JSON.parse(localStorage.getItem(REVIEW_KEY)) || []; } catch { review = []; }
+  if (!sync.url) sync.url = DEFAULT_SERVER;
   $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
   setStatus();
+}
+// Личная ссылка вида https://…/finansy/#k=КЛЮЧ подключает приложение сама; после этого ключ убирается из адресной строки
+async function connectFromLink() {
+  const k = location.hash.match(/[#&]k=([\w-]+)/);
+  if (!k) return;
+  sync.token = k[1];
+  const s = location.hash.match(/[#&]s=([^&]+)/);
+  sync.url = s ? decodeURIComponent(s[1]) : (sync.url || DEFAULT_SERVER);
+  saveSync();
+  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
+  try { await api('/inbox'); setStatus(); toast('Подключено: операции из банка будут вноситься сами', false); }
+  catch (e) { setStatus('Не удалось подключиться: ' + e.message, true); }
 }
 const saveSync = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); localStorage.setItem(REVIEW_KEY, JSON.stringify(review)); } catch {} };
 function setStatus(text, bad) {
@@ -838,9 +876,38 @@ async function api(path, opts = {}) {
 }
 /* ── push-уведомления ── */
 const b64uToBytes = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), c => c.charCodeAt(0));
-function setPush(text, bad) { const s = $('pushStatus'); s.textContent = text; s.style.color = bad ? 'var(--bad)' : ''; }
+const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const isIosBrowser = () => /iPhone|iPad|iPod/.test(navigator.userAgent) && !navigator.standalone;
+function setPush(text, bad) {
+  const s = $('pushStatus'); s.textContent = text; s.style.color = bad ? 'var(--bad)' : '';
+  if (!$('syncDetails').open) toast(text, false);              // блок свёрнут (нажали на баннер) — покажем ответ всплывашкой
+}
+// Баннер наверху: либо «Включить уведомления» (одно нажатие), либо подсказка добавить приложение на экран «Домой»
+function refreshPushBanner() {
+  const b = $('pushBanner');
+  if (isIosBrowser() && !pushSupported()) {
+    $('pushBannerTitle').textContent = 'Добавьте приложение на экран «Домой»';
+    $('pushBannerText').textContent = 'Поделиться → На экран Домой. Тогда включатся уведомления о списаниях.';
+    $('pushBannerBtn').hidden = true; b.hidden = false; return;
+  }
+  $('pushBannerTitle').textContent = '🔔 Включить уведомления';
+  $('pushBannerText').textContent = 'О каждом списании с карты — сразу на телефон';
+  $('pushBannerBtn').hidden = false;
+  b.hidden = !(sync.url && sync.token && pushSupported() && Notification.permission === 'default');
+}
+// Если разрешение уже есть — тихо (без вопросов) держим подписку на сервере в порядке
+async function ensurePush() {
+  if (!pushSupported() || Notification.permission !== 'granted' || !sync.url || !sync.token) return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const { key } = await api('/push/key');
+    if (!key) return;
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
+    await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
+  } catch {}
+}
 async function enablePush() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window))
+  if (!pushSupported())
     return setPush('Уведомления здесь недоступны. На iPhone откройте приложение с иконки на экране «Домой» (нужна iOS 16.4+), а не из Safari.', true);
   if (!sync.url || !sync.token) return setPush('Сначала подключите сервер (поля выше).', true);
   try {
@@ -853,7 +920,8 @@ async function enablePush() {
     const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
     await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
     sync.push = true; saveSync();
-    setPush('Включено ✓ Нажмите «Тестовое уведомление», чтобы проверить.');
+    refreshPushBanner();
+    setPush('Включено ✓ Теперь о каждом списании придёт уведомление.');
   } catch (e) { setPush('Не получилось включить: ' + e.message, true); }
 }
 const dateFromTs = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
@@ -947,13 +1015,20 @@ window.addEventListener('resize', () => {
 });
 
 $('syncSave').addEventListener('click', async () => {
-  sync.url = $('syncUrl').value.trim(); sync.token = $('syncToken').value.trim();
+  sync.url = $('syncUrl').value.trim() || DEFAULT_SERVER; sync.token = $('syncToken').value.trim();
   saveSync();
   if (!sync.url || !sync.token) return setStatus('Введите адрес сервера и ключ.', true);
   setStatus('Проверяем…');
-  try { await api('/inbox'); setStatus('Подключено.'); syncInbox(); }
+  try { await api('/inbox'); setStatus('Подключено.'); refreshPushBanner(); syncInbox(); }
   catch (e) { setStatus('Не удалось подключиться: ' + e.message, true); }
 });
+async function copyText(text, done) {
+  try { await navigator.clipboard.writeText(text); toast(done, false); }
+  catch { toast('Не удалось скопировать — выделите и скопируйте вручную', false); }
+}
+$('copyUrl').addEventListener('click', () => copyText(sync.url.replace(/\/+$/, '') + '/add', 'Адрес скопирован'));
+$('copyAuth').addEventListener('click', () => sync.token ? copyText('Bearer ' + sync.token, 'Скопировано: вставьте как значение заголовка Authorization') : toast('Сначала подключите приложение по личной ссылке', false));
+$('pushBannerBtn').addEventListener('click', enablePush);
 $('syncNow').addEventListener('click', () => { if (!sync.url) return setStatus('Сначала подключите сервер.', true); setStatus('Проверяем…'); syncInbox(); });
 $('smsParse').addEventListener('click', () => {
   const text = $('smsText').value.trim();
@@ -980,7 +1055,7 @@ load();
 loadSync();
 lastW = innerWidth;
 render();
-syncInbox();
+(async () => { await connectFromLink(); refreshPushBanner(); ensurePush(); syncInbox(); })();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
