@@ -149,6 +149,17 @@
   .lg b { white-space: nowrap; }
   .lg em { font-style: normal; color: var(--muted); width: 38px; text-align: right; }
 
+  textarea { font: inherit; color: var(--ink); width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--page); resize: vertical; }
+  textarea:focus-visible { outline: 2px solid var(--bal); outline-offset: 1px; }
+  .stack { display: grid; gap: 10px; margin-top: 12px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row2 button, #smsParse { cursor: pointer; }
+  h3.sub { font-size: 13px; color: var(--ink2); margin: 20px 0 0; }
+  .rv { padding: 10px 0; border-top: 1px solid var(--grid); }
+  .rv:first-child { border-top: 0; padding-top: 0; }
+  .rv p { margin: 0 0 4px; font-size: 14px; overflow-wrap: anywhere; }
+  .rv small { color: var(--muted); display: block; margin-bottom: 8px; }
+  .rv .row2 button { min-height: 38px; cursor: pointer; }
   .picker { display: flex; flex-wrap: wrap; gap: 8px; }
   .pick { width: auto !important; min-height: 38px !important; padding: 4px 12px !important; border-radius: 999px !important; font-size: 14px; color: var(--ink2) !important; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
   .pick[aria-pressed=true] { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; font-weight: 600; }
@@ -219,6 +230,11 @@
       <div class="chip"><span>Заработано всего</span><b id="totalIncome">0</b></div>
       <div class="chip"><span>Потрачено всего</span><b id="totalExpense">0</b></div>
     </div>
+  </section>
+
+  <section class="card" id="reviewCard" hidden>
+    <h2>Из банка: нужно разобрать</h2>
+    <div id="reviewList"></div>
   </section>
 
   <section class="card">
@@ -319,6 +335,27 @@
     <details>
       <summary>Таблица по дням выбранного месяца</summary>
       <table id="dayTable"></table>
+    </details>
+  </section>
+
+  <section class="card">
+    <details id="syncDetails">
+      <summary>🏦 Автоввод расходов из банка</summary>
+      <p class="hint">Телефон пересылает SMS от банка на ваш личный сервер, а приложение забирает оттуда новые операции и вносит их само. Пошаговая инструкция — <a href="setup.html">здесь</a>.</p>
+      <div class="stack">
+        <input id="syncUrl" type="url" placeholder="Адрес сервера, https://….workers.dev" autocomplete="off" aria-label="Адрес сервера">
+        <input id="syncToken" type="password" placeholder="Ключ доступа" autocomplete="off" aria-label="Ключ доступа">
+        <div class="row2">
+          <button type="button" class="primary" id="syncSave">Сохранить и проверить</button>
+          <button type="button" id="syncNow">Обновить сейчас</button>
+        </div>
+        <div class="hint" id="syncStatus"></div>
+      </div>
+      <h3 class="sub">Разобрать SMS вручную</h3>
+      <div class="stack">
+        <textarea id="smsText" rows="3" placeholder="Вставьте текст SMS от банка, например: Покупка 500 RUB. MAGNIT. Доступно 12 345 RUB" aria-label="Текст SMS"></textarea>
+        <button type="button" id="smsParse">Разобрать и заполнить форму</button>
+      </div>
     </details>
   </section>
 
@@ -659,7 +696,7 @@ function drawHistory() {
     if (i.date !== prev) { out.push(h('div', { class: 'day', text: label(i.date) })); prev = i.date; }
     out.push(h('div', { class: 'tx' },
       h('div', { class: 'ico', text: catIcon(i.type, i.category) }),
-      h('div', { class: 'info' }, h('div', { class: 'cat', text: i.category }), i.note ? h('div', { class: 'meta', text: i.note }) : ''),
+      h('div', { class: 'info' }, h('div', { class: 'cat', text: i.category }), (i.note || i.auto) ? h('div', { class: 'meta', text: (i.auto ? '🏦 ' : '') + (i.note || 'из банка') }) : ''),
       h('div', { class: 'sum ' + (i.type === 'income' ? 'pos' : 'neg'), text: (i.type === 'income' ? '+' : '−') + fmt(i.amount) }),
       h('button', { type: 'button', 'aria-label': 'Удалить', title: 'Удалить', text: '✕', onclick: () => remove(i.id) })));
   });
@@ -730,7 +767,7 @@ function render() {
     ? `Период: ${D.days} дн. Неделя — среднее за день ×7, месяц — ×${D.dim}${isCurrent ? ' (прогноз до конца месяца)' : ''}. Средний остаток — среднее из остатков на конец каждого дня.`
     : 'В этом месяце пока нет операций.';
 
-  drawCharts(D); drawTable(D); drawHistory(); drawPicker();
+  drawCharts(D); drawTable(D); drawHistory(); drawPicker(); drawReview();
   renderDebt(balance, per, D);
 }
 
@@ -752,6 +789,126 @@ function renderDebt(balance, per, D) {
   say(h('div', {}, 'Останется ', h('strong', { text: `${need.toLocaleString('ru-RU')} дн.` }),
       ` (≈ ${(need / 30.44).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} мес.), примерно до ${d.toLocaleDateString('ru-RU')}.`),
     h('div', { class: 'sub', text: `Чистый темп: ${fmt0(per.net)} в день.` }));
+}
+
+/* ── разбор банковских SMS ── */
+const CUR_TOKENS = '(₽|руб(?:\\.|лей|ля)?|р\\.?|RUB|RUR|\\$|USD|€|EUR|֏|AMD|драм\\w*|₸|KZT|₴|UAH|грн\\.?)';
+const PRE_TOKENS = '(\\$|€|₽|₸|₴|֏|USD|EUR|RUB|AMD|KZT|UAH)';
+const NUM = '(\\d{1,3}(?:[ \\u00a0]\\d{3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)';
+const SYMBOL = { '₽': '₽', 'руб': '₽', 'р': '₽', 'rub': '₽', 'rur': '₽', '$': '$', 'usd': '$', '€': '€', 'eur': '€', '֏': '֏', 'amd': '֏', 'драм': '֏', '₸': '₸', 'kzt': '₸', '₴': '₴', 'uah': '₴', 'грн': '₴' };
+const EXPENSE_GUESS = [
+  ['Продукты', /magnit|магнит|пят[её]рочк|перекр[её]ст|лента|ашан|дикси|вкусвилл|spar\b|азбука вкуса|продукт|supermarket|grocery|marketplace|market\b/],
+  ['Кафе и рестораны', /kfc|burger|mcdonald|макдон|starbucks|кофе|cafe|кафе|ресторан|restaurant|pizza|пицц|додо|sushi|суши|вкусно|delivery club|яндекс.?еда|yandex.?eda|бар\b/],
+  ['Транспорт', /taxi|такси|uber|yandex.?go|яндекс.?go|метро|metro|ржд|rzd|аэрофлот|\bазс\b|лукойл|роснефть|газпромнефть|parking|парков|автобус|transport|тройка/],
+  ['Связь и интернет', /\bмтс\b|mts|beeline|билайн|megafon|мегафон|tele2|теле2|ростелеком|yota|интернет|internet/],
+  ['Здоровье', /аптек|apteka|pharm|clinic|клиник|стоматолог|горздрав|36\.6|медицин|лаборатор/],
+  ['Одежда', /zara|h&m|lamoda|uniqlo|одежд|обув|спортмастер|sportmaster|befree|gloria/],
+  ['Развлечения', /cinema|кино|netflix|spotify|steam|playstation|\bivi\b|okko|театр|concert|билет|игр/],
+  ['Жильё и коммуналка', /жкх|жку|коммунал|квартплат|электроэнерг|мосэнерго|водоканал|аренд|\brent\b|ипотек/],
+  ['Образование', /школ|университет|курс|udemy|skillbox|coursera|образован|репетитор/],
+  ['Питомцы', /petshop|зоомагазин|\bzoo|ветеринар|petstore|четыре лапы/],
+];
+const INCOME_GUESS = [
+  ['Зарплата', /зарплат|salary|аванс|заработн/],
+  ['Возврат', /возврат|refund|cashback|кэшбэк|кешбэк/],
+  ['Проценты и инвестиции', /процент|interest|дивиденд|купон/],
+];
+const TRANSFER_RE = /(перевод|перевел|перевёл|переведен|переведён|transfer|p2p|c2c|\bсбп\b|между (?:своими )?счетами|с карты на карту|накопительн)/i;
+function parseBankText(raw) {
+  const t = String(raw || '').replace(/[ \s]+/g, ' ').replace(/\*+\s?\d{2,4}/g, ' ').trim();
+  const cut = t.search(/(доступно|баланс|остаток|остат\.|balance|available|\bbal\b)/i);
+  const head = cut > 0 ? t.slice(0, cut) : t;
+  let m = head.match(new RegExp(NUM + '\\s*' + CUR_TOKENS + '(?![a-zа-яё\\d])', 'i')), num, tok, end;
+  if (m) { num = m[1]; tok = m[2]; end = m.index + m[0].length; }
+  else if ((m = head.match(new RegExp(PRE_TOKENS + '\\s*' + NUM, 'i')))) { tok = m[1]; num = m[2]; end = m.index + m[0].length; }
+  else return { ok: false };
+  const amount = parseFloat(num.replace(/[  ]/g, '').replace(',', '.'));
+  if (!(amount > 0)) return { ok: false };
+  const key = tok.toLowerCase().replace(/[.\s]/g, '').replace(/^руб.*/, 'руб').replace(/^драм.*/, 'драм').replace(/^грн.*/, 'грн');
+  const sym = SYMBOL[key];
+  // Переводы (между своими счетами, другому человеку, по СБП) — не расход и не заработок, в учёт не идут.
+  // Исключение — зарплата, которая тоже может приходить «переводом».
+  if (!/(зарплат|заработн|salary|аванс)/i.test(head) && TRANSFER_RE.test(head)) return { ok: true, type: 'transfer', amount, sym };
+  const isInc = /(зачислен|поступлен|пополнен|получен|начислен|зарплат|аванс|возврат|refund|credit|deposit|входящ|перевод от|cashback|кэшбэк|кешбэк)/i.test(head);
+  const isExp = /(покупк|оплат|списан|снят|расход|purchase|payment|withdraw|debit|pokupka|oplata|перевод (?:на|клиент)|отправлен|платеж|платёж)/i.test(head);
+  const type = isInc ? 'income' : isExp ? 'expense' : null;
+  if (!type) return { ok: false, amount, sym };
+  const merchant = head.slice(end).replace(/^[\s.,;:|\-–—]+/, '').replace(/^(at|в|в магазине)\s+/i, '')
+    .split(/\s*[;|]\s*|\.\s+|,\s+|\.$/).map(s => s.trim())
+    .filter(s => s.length > 1 && !/^(карт|karta|card|сч[её]т|schet|visa|mastercard|mir|мир)(\s|$)/i.test(s))[0] || '';
+  const hay = (merchant + ' ' + head).toLowerCase();
+  const table = type === 'income' ? INCOME_GUESS : EXPENSE_GUESS;
+  const category = (table.find(([, re]) => re.test(hay)) || [type === 'income' ? 'Другое' : 'Прочее'])[0];
+  return { ok: true, type, amount, sym, merchant: merchant.slice(0, 40), category };
+}
+function fillForm(p, note) {
+  document.querySelector(`input[name=type][value=${p.type === 'income' ? 'income' : 'expense'}]`).checked = true;
+  if (p.amount) $('amount').value = String(p.amount).replace('.', ',');
+  const type = curType();
+  if (p.category) { picked[type] = p.category; customMode = false; }
+  $('note').value = note || p.merchant || '';
+  drawPicker();
+  $('amount').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  $('amount').focus();
+}
+
+/* ── синхронизация с «почтовым ящиком» ── */
+const SYNC_KEY = 'budget.sync', REVIEW_KEY = 'budget.review';
+let sync = { url: '', token: '', seen: [], last: 0 };
+let review = [];
+let syncing = false;
+function loadSync() {
+  try { sync = { ...sync, ...JSON.parse(localStorage.getItem(SYNC_KEY)) }; } catch {}
+  try { review = JSON.parse(localStorage.getItem(REVIEW_KEY)) || []; } catch { review = []; }
+  $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
+  setStatus();
+}
+const saveSync = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); localStorage.setItem(REVIEW_KEY, JSON.stringify(review)); } catch {} };
+function setStatus(text, bad) {
+  const s = $('syncStatus');
+  s.textContent = text || (sync.url && sync.token ? (sync.last ? `Подключено. Последняя проверка: ${new Date(sync.last).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}` : 'Подключено.')
+    + (sync.skipped ? ` Переводов пропущено (не считаются): ${sync.skipped}.` : '') : 'Не подключено.');
+  s.style.color = bad ? 'var(--bad)' : '';
+}
+async function api(path, opts = {}) {
+  const r = await fetch(sync.url.replace(/\/+$/, '') + path, { ...opts, headers: { Authorization: 'Bearer ' + sync.token, 'Content-Type': 'application/json' } });
+  if (!r.ok) throw new Error(r.status === 401 ? 'неверный ключ' : 'ошибка сервера ' + r.status);
+  return r.json();
+}
+const dateFromTs = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+async function syncInbox() {
+  if (!sync.url || !sync.token || syncing) return;
+  syncing = true;
+  try {
+    const { messages } = await api('/inbox');
+    let added = 0, skipped = 0;
+    messages.forEach((msg, k) => {
+      if (sync.seen.includes(msg.id)) return;                 // уже обработано, но сервер не успел удалить
+      sync.seen.push(msg.id);
+      const p = parseBankText(msg.text);
+      if (p.type === 'transfer') { skipped++; return; }        // переводы в учёт не идут
+      if (p.ok && p.sym === cur()) {
+        items.push({ id: Date.now() + k, type: p.type, amount: p.amount, date: dateFromTs(msg.ts), category: p.category, note: p.merchant, auto: true });
+        added++;
+      } else review.push({ id: msg.id, text: msg.text, reason: p.ok ? `валюта ${p.sym} не совпадает с ${cur()}` : 'не нашлась сумма или не понятно, расход это или заработок' });
+    });
+    sync.seen = sync.seen.slice(-300); sync.last = Date.now(); sync.skipped = (sync.skipped || 0) + skipped;
+    save(); saveSync();                                        // сначала сохраняем у себя, потом просим сервер удалить
+    if (messages.length) await api('/ack', { method: 'POST', body: JSON.stringify({ ids: messages.map(m => m.id) }) });
+    setStatus();
+    if (messages.length) render();
+    if (added || skipped) toast(`Из банка добавлено: ${added}` + (skipped ? `, переводов пропущено: ${skipped}` : ''), false);
+  } catch (e) {
+    setStatus('Не удалось связаться с сервером: ' + e.message, true);
+  } finally { syncing = false; }
+}
+function drawReview() {
+  $('reviewCard').hidden = !review.length;
+  $('reviewList').replaceChildren(...review.map(r => h('div', { class: 'rv' },
+    h('p', { text: r.text }), h('small', { text: 'Почему не внеслось само: ' + r.reason }),
+    h('div', { class: 'row2' },
+      h('button', { type: 'button', text: 'Внести вручную', onclick: () => { const p = parseBankText(r.text); review = review.filter(x => x !== r); saveSync(); fillForm(p.amount ? p : { type: 'expense' }, r.text.slice(0, 60)); drawReview(); } }),
+      h('button', { type: 'button', text: 'Удалить', onclick: () => { review = review.filter(x => x !== r); saveSync(); drawReview(); } })))));
 }
 
 /* ── действия ── */
@@ -805,10 +962,32 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(() => { if (lastData && innerWidth !== lastW) { lastW = innerWidth; drawCharts(lastData); } }, 120);
 });
 
+$('syncSave').addEventListener('click', async () => {
+  sync.url = $('syncUrl').value.trim(); sync.token = $('syncToken').value.trim();
+  saveSync();
+  if (!sync.url || !sync.token) return setStatus('Введите адрес сервера и ключ.', true);
+  setStatus('Проверяем…');
+  try { await api('/inbox'); setStatus('Подключено.'); syncInbox(); }
+  catch (e) { setStatus('Не удалось подключиться: ' + e.message, true); }
+});
+$('syncNow').addEventListener('click', () => { if (!sync.url) return setStatus('Сначала подключите сервер.', true); setStatus('Проверяем…'); syncInbox(); });
+$('smsParse').addEventListener('click', () => {
+  const text = $('smsText').value.trim();
+  const p = parseBankText(text);
+  if (!p.amount) return toast('Не нашёл сумму в тексте', false);
+  if (p.type === 'transfer') return toast('Это перевод — он в учёт не идёт', false);
+  fillForm(p.type ? p : { ...p, type: 'expense' }, p.merchant || text.slice(0, 60));
+  toast(p.ok ? 'Заполнил форму, проверьте и нажмите «Добавить»' : 'Тип операции не понял — проверьте вручную', false);
+});
+document.addEventListener('visibilitychange', () => { if (!document.hidden) syncInbox(); });
+setInterval(() => { if (!document.hidden) syncInbox(); }, 60000);
+
 $('date').value = today();
 load();
+loadSync();
 lastW = innerWidth;
 render();
+syncInbox();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
