@@ -351,6 +351,15 @@
         </div>
         <div class="hint" id="syncStatus"></div>
       </div>
+      <h3 class="sub">🔔 Уведомления на телефон</h3>
+      <p class="hint">При каждом сообщении от банка на телефон придёт уведомление с суммой, категорией и остатком на карте; по нажатию операция внесётся в приложение. На iPhone работает, если открыть приложение с иконки на экране «Домой» (iOS 16.4 и новее).</p>
+      <div class="stack">
+        <div class="row2">
+          <button type="button" class="primary" id="pushOn">Включить уведомления</button>
+          <button type="button" id="pushTest">Тестовое уведомление</button>
+        </div>
+        <div class="hint" id="pushStatus"></div>
+      </div>
       <h3 class="sub">Разобрать SMS вручную</h3>
       <div class="stack">
         <textarea id="smsText" rows="3" placeholder="Вставьте текст SMS от банка, например: Покупка 500 RUB. MAGNIT. Доступно 12 345 RUB" aria-label="Текст SMS"></textarea>
@@ -368,6 +377,7 @@
 
 <div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="undo">Отменить</button></div>
 
+<script src="parser.js"></script>
 <script>
 const KEY = 'budget.v1', CUR_KEY = 'budget.currency', DEBT_KEY = 'budget.debt';
 const $ = id => document.getElementById(id);
@@ -791,56 +801,7 @@ function renderDebt(balance, per, D) {
     h('div', { class: 'sub', text: `Чистый темп: ${fmt0(per.net)} в день.` }));
 }
 
-/* ── разбор банковских SMS ── */
-const CUR_TOKENS = '(₽|руб(?:\\.|лей|ля)?|р\\.?|RUB|RUR|\\$|USD|€|EUR|֏|AMD|драм\\w*|₸|KZT|₴|UAH|грн\\.?)';
-const PRE_TOKENS = '(\\$|€|₽|₸|₴|֏|USD|EUR|RUB|AMD|KZT|UAH)';
-const NUM = '(\\d{1,3}(?:[ \\u00a0]\\d{3})+(?:[.,]\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)';
-const SYMBOL = { '₽': '₽', 'руб': '₽', 'р': '₽', 'rub': '₽', 'rur': '₽', '$': '$', 'usd': '$', '€': '€', 'eur': '€', '֏': '֏', 'amd': '֏', 'драм': '֏', '₸': '₸', 'kzt': '₸', '₴': '₴', 'uah': '₴', 'грн': '₴' };
-const EXPENSE_GUESS = [
-  ['Продукты', /magnit|магнит|пят[её]рочк|перекр[её]ст|лента|ашан|дикси|вкусвилл|spar\b|азбука вкуса|продукт|supermarket|grocery|marketplace|market\b/],
-  ['Кафе и рестораны', /kfc|burger|mcdonald|макдон|starbucks|кофе|cafe|кафе|ресторан|restaurant|pizza|пицц|додо|sushi|суши|вкусно|delivery club|яндекс.?еда|yandex.?eda|бар\b/],
-  ['Транспорт', /taxi|такси|uber|yandex.?go|яндекс.?go|метро|metro|ржд|rzd|аэрофлот|\bазс\b|лукойл|роснефть|газпромнефть|parking|парков|автобус|transport|тройка/],
-  ['Связь и интернет', /\bмтс\b|mts|beeline|билайн|megafon|мегафон|tele2|теле2|ростелеком|yota|интернет|internet/],
-  ['Здоровье', /аптек|apteka|pharm|clinic|клиник|стоматолог|горздрав|36\.6|медицин|лаборатор/],
-  ['Одежда', /zara|h&m|lamoda|uniqlo|одежд|обув|спортмастер|sportmaster|befree|gloria/],
-  ['Развлечения', /cinema|кино|netflix|spotify|steam|playstation|\bivi\b|okko|театр|concert|билет|игр/],
-  ['Жильё и коммуналка', /жкх|жку|коммунал|квартплат|электроэнерг|мосэнерго|водоканал|аренд|\brent\b|ипотек/],
-  ['Образование', /школ|университет|курс|udemy|skillbox|coursera|образован|репетитор/],
-  ['Питомцы', /petshop|зоомагазин|\bzoo|ветеринар|petstore|четыре лапы/],
-];
-const INCOME_GUESS = [
-  ['Зарплата', /зарплат|salary|аванс|заработн/],
-  ['Возврат', /возврат|refund|cashback|кэшбэк|кешбэк/],
-  ['Проценты и инвестиции', /процент|interest|дивиденд|купон/],
-];
-const TRANSFER_RE = /(перевод|перевел|перевёл|переведен|переведён|transfer|p2p|c2c|\bсбп\b|между (?:своими )?счетами|с карты на карту|накопительн)/i;
-function parseBankText(raw) {
-  const t = String(raw || '').replace(/[ \s]+/g, ' ').replace(/\*+\s?\d{2,4}/g, ' ').trim();
-  const cut = t.search(/(доступно|баланс|остаток|остат\.|balance|available|\bbal\b)/i);
-  const head = cut > 0 ? t.slice(0, cut) : t;
-  let m = head.match(new RegExp(NUM + '\\s*' + CUR_TOKENS + '(?![a-zа-яё\\d])', 'i')), num, tok, end;
-  if (m) { num = m[1]; tok = m[2]; end = m.index + m[0].length; }
-  else if ((m = head.match(new RegExp(PRE_TOKENS + '\\s*' + NUM, 'i')))) { tok = m[1]; num = m[2]; end = m.index + m[0].length; }
-  else return { ok: false };
-  const amount = parseFloat(num.replace(/[  ]/g, '').replace(',', '.'));
-  if (!(amount > 0)) return { ok: false };
-  const key = tok.toLowerCase().replace(/[.\s]/g, '').replace(/^руб.*/, 'руб').replace(/^драм.*/, 'драм').replace(/^грн.*/, 'грн');
-  const sym = SYMBOL[key];
-  // Переводы (между своими счетами, другому человеку, по СБП) — не расход и не заработок, в учёт не идут.
-  // Исключение — зарплата, которая тоже может приходить «переводом».
-  if (!/(зарплат|заработн|salary|аванс)/i.test(head) && TRANSFER_RE.test(head)) return { ok: true, type: 'transfer', amount, sym };
-  const isInc = /(зачислен|поступлен|пополнен|получен|начислен|зарплат|аванс|возврат|refund|credit|deposit|входящ|перевод от|cashback|кэшбэк|кешбэк)/i.test(head);
-  const isExp = /(покупк|оплат|списан|снят|расход|purchase|payment|withdraw|debit|pokupka|oplata|перевод (?:на|клиент)|отправлен|платеж|платёж)/i.test(head);
-  const type = isInc ? 'income' : isExp ? 'expense' : null;
-  if (!type) return { ok: false, amount, sym };
-  const merchant = head.slice(end).replace(/^[\s.,;:|\-–—]+/, '').replace(/^(at|в|в магазине)\s+/i, '')
-    .split(/\s*[;|]\s*|\.\s+|,\s+|\.$/).map(s => s.trim())
-    .filter(s => s.length > 1 && !/^(карт|karta|card|сч[её]т|schet|visa|mastercard|mir|мир)(\s|$)/i.test(s))[0] || '';
-  const hay = (merchant + ' ' + head).toLowerCase();
-  const table = type === 'income' ? INCOME_GUESS : EXPENSE_GUESS;
-  const category = (table.find(([, re]) => re.test(hay)) || [type === 'income' ? 'Другое' : 'Прочее'])[0];
-  return { ok: true, type, amount, sym, merchant: merchant.slice(0, 40), category };
-}
+/* ── разбор банковских SMS: parseBankText() лежит в parser.js ── */
 function fillForm(p, note) {
   document.querySelector(`input[name=type][value=${p.type === 'income' ? 'income' : 'expense'}]`).checked = true;
   if (p.amount) $('amount').value = String(p.amount).replace('.', ',');
@@ -875,6 +836,26 @@ async function api(path, opts = {}) {
   if (!r.ok) throw new Error(r.status === 401 ? 'неверный ключ' : 'ошибка сервера ' + r.status);
   return r.json();
 }
+/* ── push-уведомления ── */
+const b64uToBytes = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), c => c.charCodeAt(0));
+function setPush(text, bad) { const s = $('pushStatus'); s.textContent = text; s.style.color = bad ? 'var(--bad)' : ''; }
+async function enablePush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window))
+    return setPush('Уведомления здесь недоступны. На iPhone откройте приложение с иконки на экране «Домой» (нужна iOS 16.4+), а не из Safari.', true);
+  if (!sync.url || !sync.token) return setPush('Сначала подключите сервер (поля выше).', true);
+  try {
+    setPush('Запрашиваем разрешение…');
+    if (await Notification.requestPermission() !== 'granted')
+      return setPush('Разрешение не выдано. Включите уведомления для приложения: Настройки iPhone → Уведомления → Мои финансы.', true);
+    const reg = await navigator.serviceWorker.ready;
+    const { key } = await api('/push/key');
+    if (!key) return setPush('На сервере не настроены ключи уведомлений.', true);
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
+    await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
+    sync.push = true; saveSync();
+    setPush('Включено ✓ Нажмите «Тестовое уведомление», чтобы проверить.');
+  } catch (e) { setPush('Не получилось включить: ' + e.message, true); }
+}
 const dateFromTs = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 async function syncInbox() {
   if (!sync.url || !sync.token || syncing) return;
@@ -897,7 +878,10 @@ async function syncInbox() {
     if (messages.length) await api('/ack', { method: 'POST', body: JSON.stringify({ ids: messages.map(m => m.id) }) });
     setStatus();
     if (messages.length) render();
-    if (added || skipped) toast(`Из банка добавлено: ${added}` + (skipped ? `, переводов пропущено: ${skipped}` : ''), false);
+    if (added === 1 && !skipped) {                             // одна операция — показываем её данные
+      const it = items[items.length - 1];
+      toast(`🏦 ${it.type === 'income' ? '+' : '−'}${fmt(it.amount)} · ${it.category}${it.note ? ' · ' + it.note : ''}`, false);
+    } else if (added || skipped) toast(`Из банка добавлено: ${added}` + (skipped ? `, переводов пропущено: ${skipped}` : ''), false);
   } catch (e) {
     setStatus('Не удалось связаться с сервером: ' + e.message, true);
   } finally { syncing = false; }
@@ -979,6 +963,15 @@ $('smsParse').addEventListener('click', () => {
   fillForm(p.type ? p : { ...p, type: 'expense' }, p.merchant || text.slice(0, 60));
   toast(p.ok ? 'Заполнил форму, проверьте и нажмите «Добавить»' : 'Тип операции не понял — проверьте вручную', false);
 });
+$('pushOn').addEventListener('click', enablePush);
+$('pushTest').addEventListener('click', async () => {
+  if (!sync.url) return setPush('Сначала подключите сервер.', true);
+  try {
+    const r = await api('/push/test', { method: 'POST', body: '{}' });
+    setPush(r.sent ? 'Тест отправлен — уведомление придёт через несколько секунд.' : 'Нет подписанных устройств. Нажмите «Включить уведомления».', !r.sent);
+  } catch (e) { setPush('Не удалось отправить: ' + e.message, true); }
+});
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'sync') syncInbox(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) syncInbox(); });
 setInterval(() => { if (!document.hidden) syncInbox(); }, 60000);
 
