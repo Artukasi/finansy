@@ -417,15 +417,30 @@
           <button type="button" id="pushTest">Тестовое уведомление</button>
         </div>
         <div class="hint" id="pushStatus"></div>
+        <button type="button" id="tgOn">Получать уведомления в Telegram</button>
+        <div class="hint" id="tgStatus" style="margin-top:0"></div>
       </div>
       <h3 class="sub">Ежедневное напоминание</h3>
-      <p class="hint">Раз в день придёт уведомление, чтобы не забыть внести траты. Время можно поменять.</p>
+      <p class="hint">Раз в день придёт уведомление с остатком и тратами за сегодня, чтобы не забыть внести остальное. Время можно поменять.</p>
       <div class="stack">
         <div class="row2">
           <label class="check" style="margin-top:0"><input type="checkbox" id="remindOn" checked><span>Напоминать</span></label>
-          <input type="time" id="remindTime" value="21:00" aria-label="Время напоминания">
+          <input type="time" id="remindTime" value="15:00" aria-label="Время напоминания">
         </div>
         <div class="hint" id="remindStatus" style="margin-top:0"></div>
+      </div>
+      <div id="adminBox" hidden>
+        <h3 class="sub">Пригласить человека</h3>
+        <p class="hint">У каждого своя ссылка: свои данные, свой Telegram, свои уведомления. Создайте ссылку и отправьте её человеку; он откроет её на своём телефоне.</p>
+        <div class="stack">
+          <input id="inviteName" placeholder="Имя" autocomplete="off" aria-label="Имя человека">
+          <button type="button" class="primary" id="inviteBtn">Создать ссылку</button>
+          <input id="inviteLink" readonly hidden aria-label="Личная ссылка">
+          <div class="row2" id="inviteActions" hidden>
+            <button type="button" id="inviteCopy">Скопировать</button>
+            <button type="button" id="inviteShare">Поделиться</button>
+          </div>
+        </div>
       </div>
       <h3 class="sub">Разобрать SMS вручную</h3>
       <div class="stack">
@@ -891,6 +906,7 @@ function render() {
 
   drawCharts(D); drawTable(D); drawHistory(); drawPicker(); drawReview();
   renderDebt(balance, per, D);
+  scheduleSummary();
 }
 
 function renderDebt(balance, per, D) {
@@ -1152,7 +1168,9 @@ setInterval(() => { if (!document.hidden) syncInbox(); }, 60000);
 /* ── ежедневное напоминание (рассылает сервер по расписанию) ── */
 const tzName = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow'; } catch { return 'Europe/Moscow'; } };
 function loadReminder() {
-  sync.reminder = { enabled: true, time: '21:00', ...(sync.reminder || {}) };
+  // по умолчанию — 15:00; своё время (userSet) сохраняется
+  const saved = sync.reminder || {};
+  sync.reminder = saved.userSet ? { enabled: true, time: '15:00', ...saved } : { enabled: true, time: '15:00' };
   $('remindOn').checked = sync.reminder.enabled; $('remindTime').value = sync.reminder.time;
 }
 async function pushReminder() {
@@ -1165,9 +1183,53 @@ async function pushReminder() {
   } catch (e) { st.textContent = 'Не удалось сохранить напоминание: ' + e.message; st.style.color = 'var(--bad)'; }
 }
 function reminderChanged() {
-  sync.reminder = { enabled: $('remindOn').checked, time: $('remindTime').value || '21:00' };
+  sync.reminder = { enabled: $('remindOn').checked, time: $('remindTime').value || '15:00', userSet: true };
   saveSync(); pushReminder();
 }
+
+/* ── сводка для текста напоминания: остаток и траты за сегодня ── */
+let summaryTimer, lastSummaryKey = '';
+function scheduleSummary() { clearTimeout(summaryTimer); summaryTimer = setTimeout(pushSummary, 2000); }
+async function pushSummary() {
+  if (!sync.url || !sync.token) return;
+  const r2 = n => Math.round(n * 100) / 100, t = today();
+  const balance = r2(sum(items.filter(i => i.type === 'income').map(i => i.amount)) - sum(items.filter(i => i.type === 'expense').map(i => i.amount)));
+  const todayExpense = r2(sum(items.filter(i => i.type === 'expense' && i.date === t).map(i => i.amount)));
+  const key = `${balance}|${todayExpense}|${t}|${cur()}`;
+  if (key === lastSummaryKey) return;
+  try { await api('/summary', { method: 'POST', body: JSON.stringify({ balance, todayExpense, date: t, sym: cur() }) }); lastSummaryKey = key; } catch {}
+}
+
+/* ── Telegram и приглашение людей ── */
+async function refreshTg() {
+  try {
+    const s = await api('/tg/status');
+    $('tgStatus').textContent = !s.configured ? 'Telegram на сервере не настроен.' : s.linked ? 'Telegram подключён: уведомления приходят туда.' : 'Telegram не подключён.';
+    $('tgOn').textContent = s.linked ? 'Переподключить Telegram' : 'Получать уведомления в Telegram';
+  } catch {}
+}
+async function loadMe() {
+  try { const me = await api('/me'); $('adminBox').hidden = !me.admin; } catch {}
+}
+$('tgOn').addEventListener('click', async () => {
+  try { const { link } = await api('/tg/link'); window.open(link, '_blank') || (location.href = link); }
+  catch (e) { $('tgStatus').textContent = 'Не удалось получить ссылку: ' + e.message; }
+});
+$('inviteBtn').addEventListener('click', async () => {
+  const name = $('inviteName').value.trim();
+  if (!name) return $('inviteName').focus();
+  try {
+    const u = await api('/admin/users', { method: 'POST', body: JSON.stringify({ name }) });
+    $('inviteLink').value = new URL('./', location.href).href + '#k=' + u.token;
+    $('inviteLink').hidden = false; $('inviteActions').hidden = false;
+    toast(`Ссылка для «${name}» создана`, false);
+  } catch (e) { toast('Не удалось создать ссылку: ' + e.message, false); }
+});
+$('inviteCopy').addEventListener('click', () => copyText($('inviteLink').value, 'Ссылка скопирована'));
+$('inviteShare').addEventListener('click', async () => {
+  try { await navigator.share({ title: 'Мои финансы', text: 'Личная ссылка для подключения', url: $('inviteLink').value }); }
+  catch { copyText($('inviteLink').value, 'Ссылка скопирована'); }
+});
 $('remindOn').addEventListener('change', reminderChanged);
 $('remindTime').addEventListener('change', reminderChanged);
 
@@ -1193,7 +1255,7 @@ loadReminder();
 markNav();
 lastW = innerWidth;
 render();
-(async () => { await connectFromLink(); refreshPushBanner(); ensurePush(); syncInbox(); })();
+(async () => { await connectFromLink(); refreshPushBanner(); ensurePush(); pushReminder(); pushSummary(); loadMe(); refreshTg(); syncInbox(); })();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
