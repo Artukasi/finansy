@@ -183,11 +183,20 @@
   .banner .bn { flex: 1; min-width: 0; display: grid; gap: 2px; }
   .banner .bn span { font-size: 13px; opacity: .8; }
   .banner button { width: auto; min-width: 110px; flex: none; cursor: pointer; background: var(--butter); color: #17231C; border: 0; font-weight: 700; }
-  .paircode { font: 700 44px/1.2 var(--display); letter-spacing: .12em; text-align: center; margin: 14px 0 8px; }
-  #pairCard a { color: var(--ink); }
-  details.adv { margin-top: 16px; }
-  details.adv summary { font-size: 13px; color: var(--muted); }
-
+  .acc { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .acc b { font: 600 16px/1.3 var(--display); overflow-wrap: anywhere; }
+  .acc button { width: auto; min-width: 96px; cursor: pointer; }
+  .auth { position: fixed; inset: 0; z-index: 100; overflow: auto; background: var(--page); display: grid; place-items: center; padding: 24px;
+          padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+  .auth[hidden] { display: none; }
+  .authbox { width: 100%; max-width: 380px; }
+  .authbox h1 { font: 700 26px/1.2 var(--display); margin: 18px 0 6px; }
+  .authbox .logo.big { width: 56px; height: 56px; }
+  .authsub { color: var(--ink2); margin: 0 0 20px; }
+  .authtabs button { border: 0; background: none; min-height: 44px; border-radius: 14px; font-weight: 600; color: var(--ink2); cursor: pointer; }
+  .authtabs button.on { background: var(--ink); color: var(--page); }
+  .authform { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 14px; }
+  .authform button.primary { min-height: 54px; border-radius: 18px; font-size: 17px; }
   details summary { cursor: pointer; font-weight: 600; color: var(--ink2); }
   table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
   th { text-align: right; color: var(--muted); font-weight: 500; font-size: 12px; }
@@ -279,24 +288,6 @@
   <section class="card banner" id="pushBanner" hidden>
     <div class="bn"><b id="pushBannerTitle">Включить уведомления</b><span id="pushBannerText">О каждом списании с карты — сразу на телефон</span></div>
     <button type="button" class="primary" id="pushBannerBtn">Включить</button>
-  </section>
-
-  <section class="card" id="pairCard" hidden>
-    <div id="pairClaim" hidden>
-      <h2>Подключите приложение</h2>
-      <p class="hint" style="margin-top:0">Откройте личную ссылку в Safari: там будет код из шести цифр. Введите его здесь.</p>
-      <div class="row2" style="margin-top:12px">
-        <input id="pairInput" inputmode="numeric" maxlength="7" placeholder="Код из 6 цифр" autocomplete="one-time-code" aria-label="Код подключения">
-        <button type="button" class="primary" id="pairBtn">Подключить</button>
-      </div>
-      <div class="hint" id="pairStatus"></div>
-    </div>
-    <div id="pairShow" hidden>
-      <h2>Добавьте на экран «Домой»</h2>
-      <p class="hint" style="margin-top:0">Нажмите «Поделиться» → «На экран Домой». Запустите приложение с иконки и введите в нём этот код:</p>
-      <div class="paircode" id="pairCode">------</div>
-      <p class="hint" style="margin-top:0;text-align:center">Код действует 10 минут и подходит один раз. <a href="#" id="pairNew">Получить новый</a></p>
-    </div>
   </section>
 
   <section class="card" id="reviewCard" hidden>
@@ -408,7 +399,7 @@
   <section class="card" id="bankCard">
     <details id="syncDetails">
       <summary>Автоввод расходов из банка</summary>
-      <p class="hint">Телефон пересылает SMS от банка на ваш личный сервер, а приложение забирает оттуда новые операции и вносит их само. Подключение происходит по личной ссылке, вводить ничего не нужно.</p>
+      <p class="hint">Телефон пересылает SMS от банка на ваш личный сервер, а приложение забирает оттуда новые операции и вносит их само. Подключается само после входа в аккаунт.</p>
       <div class="hint" id="syncStatus"></div>
       <div class="stack">
         <button type="button" id="syncNow">Проверить новые операции сейчас</button>
@@ -421,14 +412,6 @@
           <button type="button" id="copyAuth">Скопировать ключ</button>
         </div>
       </div>
-      <details class="adv">
-        <summary>Подключить вручную</summary>
-        <div class="stack">
-          <input id="syncUrl" type="url" placeholder="Адрес сервера, https://….workers.dev" autocomplete="off" aria-label="Адрес сервера">
-          <input id="syncToken" type="password" placeholder="Ключ доступа" autocomplete="off" aria-label="Ключ доступа">
-          <button type="button" class="primary" id="syncSave">Сохранить и проверить</button>
-        </div>
-      </details>
       <h3 class="sub">Уведомления на телефон</h3>
       <p class="hint">При каждом сообщении от банка на телефон придёт уведомление с суммой, категорией и остатком на карте; по нажатию операция внесётся в приложение. На iPhone работает, если открыть приложение с иконки на экране «Домой» (iOS 16.4 и новее). Если уведомления приложения недоступны (старый iOS), они приходят в Telegram: сообщения бота выглядят так же, как обычные уведомления.</p>
       <div class="stack">
@@ -449,17 +432,6 @@
         </div>
         <div class="hint" id="remindStatus" style="margin-top:0"></div>
       </div>
-      <div id="adminBox" hidden>
-        <h3 class="sub">Пригласить человека</h3>
-        <p class="hint">У каждого своя ссылка: свои данные, свой Telegram, свои уведомления. Создайте ссылку и отправьте её человеку; он откроет её на своём телефоне.</p>
-        <div class="stack">
-          <input id="inviteName" placeholder="Имя" autocomplete="off" aria-label="Имя человека">
-          <button type="button" class="primary" id="inviteBtn">Создать ссылку</button>
-          <input id="inviteLink" readonly hidden aria-label="Личная ссылка">
-          <div class="row2" id="inviteActions" hidden>
-            <button type="button" id="inviteCopy">Скопировать</button>
-            <button type="button" id="inviteShare">Поделиться</button>
-          </div>
         </div>
       </div>
       <h3 class="sub">Разобрать SMS вручную</h3>
@@ -470,11 +442,39 @@
     </details>
   </section>
 
+  <section class="card" id="accountCard">
+    <div class="acc"><div><div class="hint" style="margin:0">Аккаунт</div><b id="accName">—</b></div><button type="button" id="logoutBtn">Выйти</button></div>
+    <p class="hint">Ваши операции хранятся в аккаунте: войдите с логином и паролем на любом телефоне, и они будут там же.</p>
+  </section>
+
   <section class="card">
     <h2>История</h2>
     <div id="list"></div>
     <button type="button" class="more" id="more" hidden>Показать ещё</button>
   </section>
+</div>
+
+<div class="auth" id="auth" hidden>
+  <div class="authbox">
+    <svg class="logo big" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="9" fill="#17231C"/>
+      <rect x="7" y="15" width="4.5" height="10" rx="1.2" fill="#F3D34A"/>
+      <rect x="13.75" y="7" width="4.5" height="18" rx="1.2" fill="#FBF8F0"/>
+      <rect x="20.5" y="12" width="4.5" height="13" rx="1.2" fill="#F0805A"/>
+    </svg>
+    <h1>Мои финансы</h1>
+    <p class="authsub">Учёт трат и заработка. Войдите, чтобы ваши данные хранились в аккаунте и были на любом телефоне.</p>
+    <div class="seg authtabs" role="tablist">
+      <button type="button" id="tabLogin" class="on" role="tab">Вход</button>
+      <button type="button" id="tabReg" role="tab">Регистрация</button>
+    </div>
+    <form id="authForm" class="authform">
+      <input id="authLogin" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Логин (латиницей)" aria-label="Логин" required>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="Пароль (от 6 символов)" aria-label="Пароль" required>
+      <button class="primary" id="authBtn" type="submit">Войти</button>
+      <div class="hint" id="authMsg" role="status"></div>
+    </form>
+  </div>
 </div>
 
 <nav class="nav" aria-label="Разделы">
@@ -493,22 +493,33 @@ const KEY = 'budget.v1', CUR_KEY = 'budget.currency', DEBT_KEY = 'budget.debt';
 const $ = id => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
 let items = [];
-let debt = { amount: 0, useBalance: true };
+let debt = { amount: 0, useBalance: true, ts: 0 };
+let tomb = {};                                              // id удалённой операции → время удаления (чтобы удаление дошло до других устройств)
+let curTs = 0;                                              // когда последний раз меняли валюту (для слияния с сервером)
+const TOMB_KEY = 'budget.tomb', META_KEY = 'budget.meta';
 const now = new Date();
 let view = { y: now.getFullYear(), m: now.getMonth() };   // выбранный месяц
 let histLimit = 30;
 let lastData = null;
 
-/* ── хранилище ── */
+/* ── хранилище (копия данных на телефоне; главная копия — на сервере, в аккаунте) ── */
+const readMeta = () => { try { return JSON.parse(localStorage.getItem(META_KEY)) || {}; } catch { return {}; } };
+const writeMeta = patch => { try { localStorage.setItem(META_KEY, JSON.stringify({ ...readMeta(), ...patch })); } catch {} };
 function load() {
   try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch { items = []; }
+  try { tomb = JSON.parse(localStorage.getItem(TOMB_KEY)) || {}; } catch { tomb = {}; }
   try { $('currency').value = localStorage.getItem(CUR_KEY) || '₽'; } catch {}
+  curTs = readMeta().curTs || 0;
   try { debt = { ...debt, ...JSON.parse(localStorage.getItem(DEBT_KEY)) }; } catch {}
   $('debt').value = debt.amount ? String(debt.amount).replace('.', ',') : '';
   $('debtUseBalance').checked = !!debt.useBalance;
 }
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {} };
-const saveDebt = () => { try { localStorage.setItem(DEBT_KEY, JSON.stringify(debt)); } catch {} };
+let changeSeq = 0;                                          // растёт при каждом локальном изменении данных
+function persistData() {
+  try { localStorage.setItem(KEY, JSON.stringify(items)); localStorage.setItem(TOMB_KEY, JSON.stringify(tomb)); } catch {}
+}
+const save = () => { changeSeq++; persistData(); scheduleDataSync(); };
+const saveDebt = () => { changeSeq++; debt.ts = Date.now(); try { localStorage.setItem(DEBT_KEY, JSON.stringify(debt)); } catch {} scheduleDataSync(); };
 
 /* ── утилиты ── */
 const pad = n => String(n).padStart(2, '0');
@@ -926,7 +937,6 @@ function render() {
 
   drawCharts(D); drawTable(D); drawHistory(); drawPicker(); drawReview();
   renderDebt(balance, per, D);
-  scheduleSummary();
 }
 
 function renderDebt(balance, per, D) {
@@ -961,48 +971,129 @@ function fillForm(p, note) {
   $('amount').focus();
 }
 
-/* ── синхронизация с «почтовым ящиком» ── */
+/* ── аккаунт, синхронизация данных и «почтовый ящик» ── */
 const SYNC_KEY = 'budget.sync', REVIEW_KEY = 'budget.review';
-const DEFAULT_SERVER = 'https://finansy-inbox.artukasi.workers.dev';   // адрес не секретный; секрет — только ключ
-let sync = { url: '', token: '', seen: [], last: 0 };
+const DEFAULT_SERVER = 'https://finansy-inbox.artukasi.workers.dev';
+let sync = { url: '', token: '', name: '', uid: '', seen: [], last: 0 };
 let review = [];
 let syncing = false;
 function loadSync() {
   try { sync = { ...sync, ...JSON.parse(localStorage.getItem(SYNC_KEY)) }; } catch {}
   try { review = JSON.parse(localStorage.getItem(REVIEW_KEY)) || []; } catch { review = []; }
-  if (!sync.url) sync.url = DEFAULT_SERVER;
-  $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
+  sync.url = DEFAULT_SERVER;
+  $('accName').textContent = sync.name || '—';
   setStatus();
-}
-// Личная ссылка вида https://…/finansy/#k=КЛЮЧ подключает приложение сама; после этого ключ убирается из адресной строки
-async function connectFromLink() {
-  const k = location.hash.match(/[#&]k=([\w-]+)/);
-  if (!k) return;
-  sync.token = k[1];
-  const s = location.hash.match(/[#&]s=([^&]+)/);
-  sync.url = s ? decodeURIComponent(s[1]) : (sync.url || DEFAULT_SERVER);
-  saveSync();
-  // Из адреса ключ убираем только в установленном приложении. В Safari он должен остаться: iPhone запоминает
-  // текущий адрес, когда вы нажимаете «На экран Домой», и иконка открывается уже подключённой.
-  const installed = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-  if (installed) { try { history.replaceState(null, '', location.pathname + location.search); } catch {} }
-  $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
-  try { await api('/inbox'); setStatus(); toast('Подключено: операции из банка будут вноситься сами', false); }
-  catch (e) { setStatus('Не удалось подключиться: ' + e.message, true); }
 }
 const saveSync = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); localStorage.setItem(REVIEW_KEY, JSON.stringify(review)); } catch {} };
 function setStatus(text, bad) {
   const s = $('syncStatus');
-  s.textContent = text || (sync.url && sync.token ? (sync.last ? `Подключено. Последняя проверка: ${new Date(sync.last).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}` : 'Подключено.')
-    + (sync.skipped ? ` Переводов пропущено (не считаются): ${sync.skipped}.` : '') : 'Не подключено.');
+  s.textContent = text || (sync.token ? (sync.last ? `Подключено. Последняя проверка: ${new Date(sync.last).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}` : 'Подключено.')
+    + (sync.skipped ? ` Переводов пропущено (не считаются): ${sync.skipped}.` : '') : 'Войдите в аккаунт.');
   s.style.color = bad ? 'var(--bad)' : '';
 }
 async function api(path, opts = {}) {
-  if (!sync.token) throw new Error('приложение не подключено: откройте личную ссылку на этом телефоне');
+  if (!sync.token) throw new Error('нужно войти в аккаунт');
   const r = await fetch(sync.url.replace(/\/+$/, '') + path, { ...opts, headers: { Authorization: 'Bearer ' + sync.token, 'Content-Type': 'application/json' } });
-  if (!r.ok) throw new Error(r.status === 401 ? 'неверный ключ' : 'ошибка сервера ' + r.status);
+  if (r.status === 401) { sessionEnded(); throw new Error('нужно войти заново'); }
+  if (!r.ok) throw new Error('ошибка сервера ' + r.status);
   return r.json();
 }
+
+/* ── вход и регистрация ── */
+let authMode = 'login';
+function setAuthMode(mode) {
+  authMode = mode;
+  $('tabLogin').classList.toggle('on', mode === 'login'); $('tabReg').classList.toggle('on', mode === 'reg');
+  $('authBtn').textContent = mode === 'login' ? 'Войти' : 'Создать аккаунт';
+  $('authPass').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+  $('authMsg').textContent = '';
+}
+function showAuth(msg) {
+  $('auth').hidden = false; document.body.style.overflow = 'hidden';
+  if (msg) { $('authMsg').textContent = msg; $('authMsg').style.color = ''; }
+}
+function hideAuth() { $('auth').hidden = true; document.body.style.overflow = ''; }
+function sessionEnded() {                                   // ключ отозван (вышли на другом устройстве, аккаунт удалён)
+  if (!sync.token) return;
+  sync.token = ''; saveSync(); setStatus();
+  showAuth('Сессия завершилась. Войдите снова.');
+}
+function wipeLocal() {                                      // на этом устройстве не остаётся данных предыдущего аккаунта
+  items = []; tomb = {}; debt = { amount: 0, useBalance: true, ts: 0 }; curTs = 0; review = []; sync.seen = []; sync.skipped = 0; sync.reminder = null;
+  changeSeq++; persistData();
+  try { localStorage.removeItem(DEBT_KEY); localStorage.removeItem(CUR_KEY); } catch {}
+  writeMeta({ curTs: 0 });
+  $('debt').value = ''; $('debtUseBalance').checked = true; $('currency').value = '₽';
+  render();
+}
+async function submitAuth(e) {
+  e.preventDefault();
+  const login = $('authLogin').value.trim().toLowerCase(), password = $('authPass').value;
+  const msg = (t, bad) => { $('authMsg').textContent = t; $('authMsg').style.color = bad ? 'var(--bad)' : ''; };
+  if (!/^[a-z0-9._-]{3,32}$/.test(login)) return msg('Логин: 3–32 символа, латиница, цифры, точка, дефис или подчёркивание.', true);
+  if (password.length < 6) return msg('Пароль — не короче 6 символов.', true);
+  msg('Проверяем…');
+  $('authBtn').disabled = true;
+  try {
+    const r = await fetch(DEFAULT_SERVER + '/auth/' + (authMode === 'reg' ? 'register' : 'login'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login, password }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) return msg(d.message || 'Не получилось (ошибка ' + r.status + ').', true);
+    if (readMeta().owner && readMeta().owner !== d.uid) wipeLocal();       // вошли в другой аккаунт — данные прежнего не смешиваем
+    sync.token = d.token; sync.name = d.name; sync.uid = d.uid; sync.url = DEFAULT_SERVER; saveSync();
+    writeMeta({ owner: d.uid });
+    $('authPass').value = '';
+    hideAuth(); $('accName').textContent = d.name; setStatus();
+    toast(authMode === 'reg' ? 'Аккаунт создан' : 'Вы вошли', false);
+    startApp();
+  } catch { msg('Нет связи с сервером. Проверьте интернет.', true); }
+  finally { $('authBtn').disabled = false; }
+}
+async function logout() {
+  try { await syncData(); await api('/auth/logout', { method: 'POST', body: '{}' }); } catch {}
+  wipeLocal(); sync = { ...sync, token: '', name: '', uid: '' }; saveSync(); writeMeta({ owner: '' });
+  $('accName').textContent = '—'; setStatus(); showAuth();
+}
+
+/* ── синхронизация данных аккаунта с сервером ── */
+let dataTimer, dataSyncing = false, dataDirty = false;
+function scheduleDataSync() { if (!sync.token) return; dataDirty = true; clearTimeout(dataTimer); dataTimer = setTimeout(syncData, 1500); }
+async function syncData() {
+  if (!sync.token) return;
+  if (dataSyncing) { dataDirty = true; return; }
+  dataSyncing = true; dataDirty = false;
+  const seq = changeSeq;
+  try {
+    const doc = await api('/data/sync', { method: 'POST', body: JSON.stringify({
+      items, deleted: tomb,
+      debt: debt.ts ? { amount: debt.amount, useBalance: debt.useBalance, ts: debt.ts } : undefined,
+      currency: curTs ? { value: cur(), ts: curTs } : undefined,
+    }) });
+    if (seq === changeSeq) applyDoc(doc);                   // пока шёл запрос, данные не менялись; иначе ответ применится со следующей синхронизацией
+    else dataDirty = true;
+  } catch { /* нет связи — данные на телефоне целы, отправим позже */ }
+  finally { dataSyncing = false; if (dataDirty) scheduleDataSync(); }
+}
+function applyDoc(doc) {
+  const before = JSON.stringify([items, debt.amount, debt.useBalance, cur()]);
+  items = doc.items || []; tomb = doc.deleted || {};
+  const cutoff = Date.now() - 400 * 864e5;                  // старые метки удаления не копим
+  for (const id of Object.keys(tomb)) if (tomb[id] < cutoff) delete tomb[id];
+  if (doc.debt && doc.debt.ts >= debt.ts) {
+    debt = { amount: doc.debt.amount, useBalance: doc.debt.useBalance, ts: doc.debt.ts };
+    try { localStorage.setItem(DEBT_KEY, JSON.stringify(debt)); } catch {}
+    if (document.activeElement !== $('debt')) $('debt').value = debt.amount ? String(debt.amount).replace('.', ',') : '';
+    $('debtUseBalance').checked = !!debt.useBalance;
+  }
+  if (doc.currency && doc.currency.ts >= curTs) {
+    curTs = doc.currency.ts; writeMeta({ curTs });
+    $('currency').value = doc.currency.value; try { localStorage.setItem(CUR_KEY, doc.currency.value); } catch {}
+  }
+  persistData();
+  if (before !== JSON.stringify([items, debt.amount, debt.useBalance, cur()])) render();
+}
+
 /* ── push-уведомления ── */
 const b64uToBytes = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(s.length / 4) * 4, '=')), c => c.charCodeAt(0));
 const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
@@ -1017,7 +1108,7 @@ function refreshPushBanner() {
   if (isIosBrowser() && !pushSupported()) {
     $('pushBannerTitle').textContent = 'Добавьте приложение на экран «Домой»';
     $('pushBannerText').textContent = 'Поделиться → На экран Домой. Тогда включатся уведомления о списаниях.';
-    $('pushBannerBtn').hidden = true; b.hidden = !!(sync.url && sync.token); return;   // подключённому подсказку показывает карточка с кодом
+    $('pushBannerBtn').hidden = true; b.hidden = !sync.token; return;
   }
   $('pushBannerTitle').textContent = '🔔 Включить уведомления';
   $('pushBannerText').textContent = 'О каждом списании с карты — сразу на телефон';
@@ -1033,13 +1124,12 @@ async function ensurePush() {
     if (!key) return;
     const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
     await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
-    pushReminder();
   } catch {}
 }
 async function enablePush() {
   if (!pushSupported())
     return setPush('Уведомления здесь недоступны. На iPhone откройте приложение с иконки на экране «Домой» (нужна iOS 16.4+), а не из Safari.', true);
-  if (!sync.url || !sync.token) return setPush('Сначала подключите сервер (поля выше).', true);
+  if (!sync.token) return setPush('Сначала войдите в аккаунт.', true);
   try {
     setPush('Запрашиваем разрешение…');
     if (await Notification.requestPermission() !== 'granted')
@@ -1050,7 +1140,6 @@ async function enablePush() {
     const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
     await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
     sync.push = true; saveSync();
-    pushReminder();
     refreshPushBanner();
     setPush('Включено ✓ Теперь о каждом списании придёт уведомление.');
   } catch (e) { setPush('Не получилось включить: ' + e.message, true); }
@@ -1103,10 +1192,11 @@ function toast(text, canUndo) {
 function remove(id) {
   const i = items.findIndex(x => x.id === id); if (i < 0) return;
   undoItem = items.splice(i, 1)[0];
+  tomb[id] = Date.now();                                  // метка удаления доедет до сервера и других устройств
   save(); render(); toast('Операция удалена', true);
 }
 $('undo').addEventListener('click', () => {
-  if (undoItem) { items.push(undoItem); undoItem = null; save(); render(); }
+  if (undoItem) { items.push({ ...undoItem, id: Date.now() }); undoItem = null; save(); render(); }   // новый id: старый уже помечен удалённым
   $('toast').hidden = true;
 });
 
@@ -1137,6 +1227,7 @@ $('nextMonth').addEventListener('click', () => { view = view.m === 11 ? { y: vie
 $('more').addEventListener('click', () => { histLimit += 30; drawHistory(); });
 $('currency').addEventListener('change', () => {
   try { localStorage.setItem(CUR_KEY, $('currency').value); } catch {}
+  curTs = Date.now(); writeMeta({ curTs }); changeSeq++; scheduleDataSync();
   render();
 });
 let resizeTimer, lastW = 0;
@@ -1145,20 +1236,15 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(() => { if (lastData && innerWidth !== lastW) { lastW = innerWidth; drawCharts(lastData); } }, 120);
 });
 
-$('syncSave').addEventListener('click', async () => {
-  sync.url = $('syncUrl').value.trim() || DEFAULT_SERVER; sync.token = $('syncToken').value.trim();
-  saveSync();
-  if (!sync.url || !sync.token) return setStatus('Введите адрес сервера и ключ.', true);
-  setStatus('Проверяем…');
-  try { await api('/inbox'); setStatus('Подключено.'); refreshPair(); refreshPushBanner(); syncInbox(); }
-  catch (e) { setStatus('Не удалось подключиться: ' + e.message, true); }
-});
 async function copyText(text, done) {
   try { await navigator.clipboard.writeText(text); toast(done, false); }
   catch { toast('Не удалось скопировать — выделите и скопируйте вручную', false); }
 }
 $('copyUrl').addEventListener('click', () => copyText(sync.url.replace(/\/+$/, '') + '/add', 'Адрес скопирован'));
-$('copyAuth').addEventListener('click', () => sync.token ? copyText('Bearer ' + sync.token, 'Скопировано: вставьте как значение заголовка Authorization') : toast('Сначала подключите приложение по личной ссылке', false));
+$('copyAuth').addEventListener('click', async () => {
+  try { const { token } = await api('/auth/token', { method: 'POST', body: '{}' }); copyText('Bearer ' + token, 'Скопировано: вставьте как значение заголовка Authorization'); }
+  catch (e) { toast('Не получилось: ' + e.message, false); }
+});
 $('pushBannerBtn').addEventListener('click', enablePush);
 // iOS показывает запрос на уведомления только в ответ на касание: спрашиваем при первом касании экрана, искать кнопку не нужно
 let autoAsked = false;
@@ -1167,7 +1253,7 @@ document.addEventListener('pointerup', () => {
   autoAsked = true;
   enablePush();
 });
-$('syncNow').addEventListener('click', () => { if (!sync.url) return setStatus('Сначала подключите сервер.', true); setStatus('Проверяем…'); syncInbox(); });
+$('syncNow').addEventListener('click', () => { if (!sync.token) return setStatus('Сначала войдите в аккаунт.', true); setStatus('Проверяем…'); syncInbox(); syncData(); });
 $('smsParse').addEventListener('click', () => {
   const text = $('smsText').value.trim();
   const p = parseBankText(text);
@@ -1178,16 +1264,16 @@ $('smsParse').addEventListener('click', () => {
 });
 $('pushOn').addEventListener('click', enablePush);
 $('pushTest').addEventListener('click', async () => {
-  if (!sync.url) return setPush('Сначала подключите сервер.', true);
+  if (!sync.token) return setPush('Сначала войдите в аккаунт.', true);
   try {
     const r = await api('/push/test', { method: 'POST', body: '{}' });
     const ok = r.sent || r.telegram;
     setPush(ok ? `Тест отправлен${r.telegram ? ' в Telegram' : ''} — уведомление придёт через несколько секунд.` : 'Некому слать: нет подписанного устройства и не подключён Telegram.', !ok);
   } catch (e) { setPush('Не удалось отправить: ' + e.message, true); }
 });
-if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'sync') syncInbox(); });
-document.addEventListener('visibilitychange', () => { if (!document.hidden) syncInbox(); });
-setInterval(() => { if (!document.hidden) syncInbox(); }, 60000);
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'sync') { syncInbox(); syncData(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { syncInbox(); syncData(); } });
+setInterval(() => { if (!document.hidden) { syncInbox(); syncData(); } }, 60000);
 
 /* ── ежедневное напоминание (рассылает сервер по расписанию) ── */
 const tzName = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow'; } catch { return 'Europe/Moscow'; } };
@@ -1198,7 +1284,7 @@ function loadReminder() {
   $('remindOn').checked = sync.reminder.enabled; $('remindTime').value = sync.reminder.time;
 }
 async function pushReminder() {
-  if (!sync.url || !sync.token) return;
+  if (!sync.token) return;
   const r = sync.reminder, st = $('remindStatus');
   try {
     await api('/reminder', { method: 'POST', body: JSON.stringify({ enabled: r.enabled, time: r.time, tz: tzName() }) });
@@ -1211,52 +1297,21 @@ function reminderChanged() {
   saveSync(); pushReminder();
 }
 
-/* ── сводка для текста напоминания: остаток и траты за сегодня ── */
-let summaryTimer, lastSummaryKey = '';
-function scheduleSummary() { clearTimeout(summaryTimer); summaryTimer = setTimeout(pushSummary, 2000); }
-async function pushSummary() {
-  if (!sync.url || !sync.token) return;
-  const r2 = n => Math.round(n * 100) / 100, t = today();
-  const balance = r2(sum(items.filter(i => i.type === 'income').map(i => i.amount)) - sum(items.filter(i => i.type === 'expense').map(i => i.amount)));
-  const todayExpense = r2(sum(items.filter(i => i.type === 'expense' && i.date === t).map(i => i.amount)));
-  const key = `${balance}|${todayExpense}|${t}|${cur()}`;
-  if (key === lastSummaryKey) return;
-  try { await api('/summary', { method: 'POST', body: JSON.stringify({ balance, todayExpense, date: t, sym: cur() }) }); lastSummaryKey = key; } catch {}
-}
-
-/* ── подключение иконки на экране «Домой» по коду ── */
-const isInstalled = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
-function refreshPair() {
-  const connected = !!(sync.url && sync.token);
-  const claim = !connected, show = connected && !isInstalled() && /iPhone|iPad|iPod/.test(navigator.userAgent);
-  $('pairCard').hidden = !(claim || show); $('pairClaim').hidden = !claim; $('pairShow').hidden = !show;
-  return show;
-}
-async function newPairCode() {
-  try { const r = await api('/pair/new', { method: 'POST', body: '{}' }); $('pairCode').textContent = r.code.replace(/(\d{3})(\d{3})/, '$1 $2'); }
-  catch { $('pairCode').textContent = '------'; }
-}
-async function claimPair() {
-  const st = $('pairStatus'), code = $('pairInput').value.replace(/\D/g, '');
-  const fail = t => { st.textContent = t; st.style.color = 'var(--bad)'; };
-  if (code.length !== 6) return fail('Введите шесть цифр.');
-  st.textContent = 'Проверяем…'; st.style.color = '';
+/* ── запуск после входа ── */
+function afterConnect() { syncData(); loadMe(); initReminder(); ensurePush(); refreshTg(); syncInbox(); }
+function startApp() { hideAuth(); $('accName').textContent = sync.name || '—'; refreshPushBanner(); afterConnect(); }
+// Время напоминания хранится на сервере в аккаунте: на новом устройстве берём его оттуда, а если его ещё нет — ставим 15:00
+async function initReminder() {
   try {
-    const r = await fetch((sync.url || DEFAULT_SERVER).replace(/\/+$/, '') + '/pair/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
-    if (r.status === 429) return fail('Слишком много попыток. Подождите 10 минут.');
-    if (!r.ok) return fail('Код неверный или устарел. Получите новый в Safari.');
-    sync.url = sync.url || DEFAULT_SERVER; sync.token = (await r.json()).token; saveSync();
-    $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
-    refreshPair(); refreshPushBanner(); setStatus(); toast('Подключено: операции из банка будут вноситься сами', false);
-    afterConnect();
-  } catch (e) { fail('Нет связи с сервером: ' + e.message); }
+    const { reminder } = await api('/reminder');
+    if (!reminder) return pushReminder();
+    sync.reminder = { enabled: reminder.enabled, time: reminder.time, userSet: true }; saveSync();
+    $('remindOn').checked = reminder.enabled; $('remindTime').value = reminder.time;
+    $('remindStatus').textContent = reminder.enabled ? `Напоминание включено: каждый день в ${reminder.time}` : 'Напоминание выключено';
+  } catch {}
 }
-$('pairBtn').addEventListener('click', claimPair);
-$('pairInput').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); claimPair(); } });
-$('pairNew').addEventListener('click', e => { e.preventDefault(); newPairCode(); });
-function afterConnect() { ensurePush(); pushReminder(); pushSummary(); loadMe(); refreshTg(); syncInbox(); }
 
-/* ── Telegram и приглашение людей ── */
+/* ── Telegram ── */
 async function refreshTg() {
   try {
     const s = await api('/tg/status');
@@ -1265,26 +1320,11 @@ async function refreshTg() {
   } catch {}
 }
 async function loadMe() {
-  try { const me = await api('/me'); $('adminBox').hidden = !me.admin; } catch {}
+  try { const me = await api('/me'); if (me.name) { sync.name = me.name; $('accName').textContent = me.name; saveSync(); } } catch {}
 }
 $('tgOn').addEventListener('click', async () => {
   try { const { link } = await api('/tg/link'); window.open(link, '_blank') || (location.href = link); }
   catch (e) { $('tgStatus').textContent = 'Не удалось получить ссылку: ' + e.message; }
-});
-$('inviteBtn').addEventListener('click', async () => {
-  const name = $('inviteName').value.trim();
-  if (!name) return $('inviteName').focus();
-  try {
-    const u = await api('/admin/users', { method: 'POST', body: JSON.stringify({ name }) });
-    $('inviteLink').value = new URL('./', location.href).href + '#k=' + u.token;
-    $('inviteLink').hidden = false; $('inviteActions').hidden = false;
-    toast(`Ссылка для «${name}» создана`, false);
-  } catch (e) { toast('Не удалось создать ссылку: ' + e.message, false); }
-});
-$('inviteCopy').addEventListener('click', () => copyText($('inviteLink').value, 'Ссылка скопирована'));
-$('inviteShare').addEventListener('click', async () => {
-  try { await navigator.share({ title: 'Мои финансы', text: 'Личная ссылка для подключения', url: $('inviteLink').value }); }
-  catch { copyText($('inviteLink').value, 'Ссылка скопирована'); }
 });
 $('remindOn').addEventListener('change', reminderChanged);
 $('remindTime').addEventListener('change', reminderChanged);
@@ -1304,6 +1344,11 @@ function markNav() {
 }
 addEventListener('scroll', markNav, { passive: true });
 
+$('tabLogin').addEventListener('click', () => setAuthMode('login'));
+$('tabReg').addEventListener('click', () => setAuthMode('reg'));
+$('authForm').addEventListener('submit', submitAuth);
+$('logoutBtn').addEventListener('click', () => { if (confirm('Выйти из аккаунта на этом телефоне? Данные останутся в аккаунте, при входе вернутся.')) logout(); });
+
 $('date').value = today();
 load();
 loadSync();
@@ -1311,12 +1356,7 @@ loadReminder();
 markNav();
 lastW = innerWidth;
 render();
-(async () => {
-  await connectFromLink();
-  refreshPushBanner();
-  if (refreshPair()) newPairCode();                    // в Safari на iPhone сразу показываем код для иконки
-  if (sync.url && sync.token) afterConnect();
-})();
+if (sync.token) startApp(); else showAuth();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
