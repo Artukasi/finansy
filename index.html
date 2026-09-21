@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Мои финансы</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Финансы">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #fff; --text: #1c1f26; --muted: #6b7280; --line: #e5e7eb;
+    --income: #16a34a; --expense: #dc2626; --accent: #2563eb; --input: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101216; --card: #1a1d24; --text: #eceef2; --muted: #98a0ae; --line: #2a2f39;
+      --income: #4ade80; --expense: #f87171; --accent: #60a5fa; --input: #12151a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { -webkit-tap-highlight-color: transparent; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+  h1 { font-size: 22px; margin: 0; }
+  h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+  .balance { text-align: center; }
+  .balance .label { color: var(--muted); font-size: 14px; }
+  .balance .value { font-size: 40px; font-weight: 700; margin: 4px 0 12px; }
+  .totals { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
+  .totals div span { display: block; font-size: 13px; color: var(--muted); }
+  .totals b { font-size: 18px; }
+  .pos { color: var(--income); } .neg { color: var(--expense); }
+  .avg { display: grid; grid-template-columns: minmax(70px, auto) repeat(3, 1fr); gap: 1px; background: var(--line); border-radius: 10px; overflow: hidden; }
+  .avg > * { background: var(--card); padding: 10px 8px; text-align: center; font-size: 15px; min-width: 0; }
+  .avg .h { font-size: 13px; color: var(--muted); }
+  .avg .row { text-align: left; font-weight: 600; }
+  .avg b { font-weight: 700; }
+  .avgbal { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; padding: 12px; background: var(--bg); border-radius: 10px; }
+  .avgbal span { font-size: 14px; color: var(--muted); }
+  .avgbal b { font-size: 18px; white-space: nowrap; }
+  .hint { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+  form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  form .full { grid-column: 1 / -1; }
+  input, select, button { font: inherit; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--input); color: var(--text); width: 100%; }
+  input:not([type=radio]), button { -webkit-appearance: none; appearance: none; }
+  input[type=date] { text-align: left; }
+  .seg { display: flex; gap: 8px; }
+  .seg label { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+  .seg input { display: none; }
+  .seg input:checked + span { font-weight: 700; }
+  .seg label:has(input[value=expense]:checked) { background: var(--expense); border-color: var(--expense); color: #fff; }
+  .seg label:has(input[value=income]:checked) { background: var(--income); border-color: var(--income); color: #fff; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  li:first-child { border-top: 0; }
+  li .info { flex: 1; min-width: 0; }
+  li .cat { font-weight: 600; }
+  li .meta { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  li .sum { font-weight: 700; white-space: nowrap; }
+  li button { width: auto; padding: 4px 10px; background: none; color: var(--muted); cursor: pointer; }
+  .empty { color: var(--muted); text-align: center; padding: 16px 0; }
+  .cur { width: auto; }
+  @media (max-width: 520px) {
+    .balance .value { font-size: 32px; }
+    .avg > * { padding: 10px 4px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>💰 Мои финансы</h1>
+    <select id="currency" class="cur" aria-label="Валюта">
+      <option>₽</option><option>$</option><option>€</option><option>֏</option><option>₸</option><option>₴</option>
+    </select>
+  </header>
+
+  <section class="card balance">
+    <div class="label">Остаток</div>
+    <div class="value" id="balance">0</div>
+    <div class="totals">
+      <div><span>Заработано</span><b class="pos" id="totalIncome">0</b></div>
+      <div><span>Потрачено</span><b class="neg" id="totalExpense">0</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Средние значения</h2>
+    <div class="avg">
+      <div class="h"></div><div class="h">в день</div><div class="h">в неделю</div><div class="h">в месяц</div>
+      <div class="row">Расход</div>
+      <b class="neg" id="expDay">0</b><b class="neg" id="expWeek">0</b><b class="neg" id="expMonth">0</b>
+      <div class="row">Заработок</div>
+      <b class="pos" id="incDay">0</b><b class="pos" id="incWeek">0</b><b class="pos" id="incMonth">0</b>
+    </div>
+    <div class="avgbal"><span>Средний остаток<br>(на конец дня)</span><b id="avgBalance">0</b></div>
+    <p class="hint" id="avgHint"></p>
+  </section>
+
+  <section class="card">
+    <h2>Новая операция</h2>
+    <form id="form">
+      <div class="seg full">
+        <label><input type="radio" name="type" value="expense" checked><span>− Трата</span></label>
+        <label><input type="radio" name="type" value="income"><span>+ Заработок</span></label>
+      </div>
+      <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="Сумма" required>
+      <input id="date" type="date" required>
+      <input id="category" list="cats" placeholder="Категория (еда, зарплата…)" required>
+      <datalist id="cats"></datalist>
+      <input id="note" placeholder="Заметка (необязательно)">
+      <button class="primary full" type="submit">Добавить</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>История</h2>
+    <ul id="list"></ul>
+  </section>
+</div>
+
+<script>
+const KEY = 'budget.v1', CUR_KEY = 'budget.currency';
+const $ = id => document.getElementById(id);
+let items = [];
+
+function load() {
+  try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch { items = []; }
+  try { $('currency').value = localStorage.getItem(CUR_KEY) || '₽'; } catch {}
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {}
+}
+
+const today = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const dayNum = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d) / 864e5; };
+const fmt = n => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ' + $('currency').value;
+const fmt0 = n => n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) + ' ' + $('currency').value;
+const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function render() {
+  const income = items.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
+  const expenses = items.filter(i => i.type === 'expense');
+  const expense = expenses.reduce((s, i) => s + i.amount, 0);
+  const balance = income - expense;
+
+  $('balance').textContent = fmt(balance);
+  $('balance').className = 'value ' + (balance < 0 ? 'neg' : 'pos');
+  $('totalIncome').textContent = fmt(income);
+  $('totalExpense').textContent = fmt(expense);
+
+  // Период: от первой операции до сегодня (или до последней, если она в будущем), включительно
+  let days = 1, avgBalance = 0;
+  if (items.length) {
+    const nums = items.map(i => dayNum(i.date));
+    const first = Math.min(...nums);
+    const last = Math.max(dayNum(today()), ...nums);
+    days = last - first + 1;
+
+    // Остаток на конец каждого дня периода → среднее по дням
+    const net = new Array(days).fill(0);
+    items.forEach(i => { net[dayNum(i.date) - first] += i.type === 'income' ? i.amount : -i.amount; });
+    let running = 0, sum = 0;
+    net.forEach(n => { running += n; sum += running; });
+    avgBalance = sum / days;
+  }
+  const rows = { exp: expense, inc: income };
+  for (const [k, total] of Object.entries(rows)) {
+    const perDay = total / days;
+    $(k + 'Day').textContent = fmt0(perDay);
+    $(k + 'Week').textContent = fmt0(perDay * 7);
+    $(k + 'Month').textContent = fmt0(perDay * 30.44);
+  }
+  $('avgBalance').textContent = fmt(avgBalance);
+  $('avgBalance').className = avgBalance < 0 ? 'neg' : '';
+  $('avgHint').textContent = items.length
+    ? `По всей истории: ${days} дн. Неделя и месяц — пересчёт среднего за день. Средний остаток — среднее из остатков на конец каждого дня.`
+    : 'Добавьте операции, чтобы увидеть средние значения.';
+
+  const cats = [...new Set(items.map(i => i.category))];
+  $('cats').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+
+  const sorted = [...items].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  $('list').innerHTML = sorted.length ? sorted.map(i => `
+    <li>
+      <div class="info">
+        <div class="cat">${esc(i.category)}</div>
+        <div class="meta">${i.date.split('-').reverse().join('.')}${i.note ? ' · ' + esc(i.note) : ''}</div>
+      </div>
+      <div class="sum ${i.type === 'income' ? 'pos' : 'neg'}">${i.type === 'income' ? '+' : '−'}${fmt(i.amount)}</div>
+      <button data-del="${i.id}" title="Удалить" aria-label="Удалить">✕</button>
+    </li>`).join('') : '<div class="empty">Пока нет операций</div>';
+}
+
+$('form').addEventListener('submit', e => {
+  e.preventDefault();
+  const amount = parseFloat($('amount').value.replace(/\s/g, '').replace(',', '.'));
+  if (!(amount > 0)) return;
+  items.push({
+    id: Date.now(),
+    type: document.querySelector('input[name=type]:checked').value,
+    amount,
+    date: $('date').value,
+    category: $('category').value.trim(),
+    note: $('note').value.trim(),
+  });
+  save();
+  $('amount').value = ''; $('note').value = ''; $('category').value = '';
+  $('amount').focus();
+  render();
+});
+
+$('list').addEventListener('click', e => {
+  const id = e.target.dataset.del;
+  if (!id) return;
+  items = items.filter(i => String(i.id) !== id);
+  save();
+  render();
+});
+
+$('currency').addEventListener('change', () => {
+  try { localStorage.setItem(CUR_KEY, $('currency').value); } catch {}
+  render();
+});
+
+$('date').value = today();
+load();
+render();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
