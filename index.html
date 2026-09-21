@@ -410,7 +410,7 @@
         </div>
       </details>
       <h3 class="sub">Уведомления на телефон</h3>
-      <p class="hint">При каждом сообщении от банка на телефон придёт уведомление с суммой, категорией и остатком на карте; по нажатию операция внесётся в приложение. На iPhone работает, если открыть приложение с иконки на экране «Домой» (iOS 16.4 и новее).</p>
+      <p class="hint">При каждом сообщении от банка на телефон придёт уведомление с суммой, категорией и остатком на карте; по нажатию операция внесётся в приложение. На iPhone работает, если открыть приложение с иконки на экране «Домой» (iOS 16.4 и новее). Если уведомления приложения недоступны (старый iOS), они приходят в Telegram: сообщения бота выглядят так же, как обычные уведомления.</p>
       <div class="stack">
         <div class="row2">
           <button type="button" class="primary" id="pushOn">Включить уведомления</button>
@@ -1141,7 +1141,8 @@ $('pushTest').addEventListener('click', async () => {
   if (!sync.url) return setPush('Сначала подключите сервер.', true);
   try {
     const r = await api('/push/test', { method: 'POST', body: '{}' });
-    setPush(r.sent ? 'Тест отправлен — уведомление придёт через несколько секунд.' : 'Нет подписанных устройств. Нажмите «Включить уведомления».', !r.sent);
+    const ok = r.sent || r.telegram;
+    setPush(ok ? `Тест отправлен${r.telegram ? ' в Telegram' : ''} — уведомление придёт через несколько секунд.` : 'Некому слать: нет подписанного устройства и не подключён Telegram.', !ok);
   } catch (e) { setPush('Не удалось отправить: ' + e.message, true); }
 });
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => { if (e.data && e.data.type === 'sync') syncInbox(); });
