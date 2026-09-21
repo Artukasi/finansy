@@ -6,8 +6,8 @@
 <meta name="color-scheme" content="light dark">
 <title>Мои финансы</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F1ECE1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1A14" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -15,66 +15,75 @@
 <meta name="format-detection" content="telephone=no">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
-    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,.10); --wash: rgba(11,11,11,.05);
-    --inc: #1baf7a; --exp: #e34948; --bal: #2a78d6;
-    --good: #006300; --bad: #d03b3b; --accent: #256abf; --track: #cde2fb;
-    --hero-a: #184f95; --hero-b: #2a78d6;
+    --display: 'Unbounded', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --text: 'Onest', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --page: #F1ECE1; --surface: #FBF8F0; --ink: #17231C; --ink2: #55605A; --muted: #6B756E;
+    --grid: #E7DFCD; --axis: #C9BFA8; --border: #E2D9C6; --wash: rgba(23,35,28,.06);
+    --butter: #F3D34A; --butter-2: #4A4522;
+    --inc: #1baf7a; --exp: #e34948; --bal: var(--ink);
+    --good: #1A6B45; --bad: #B93A14;
+    --btn-bg: #17231C; --btn-fg: #F3D34A;
+    --dark-card: #17231C; --dark-field: #22322A; --dark-line: #3C4D43; --dark-text: #FBF8F0; --dark-muted: #B9C2BB;
+    /* проверенная категориальная палитра (валидатор: соседние цвета различимы и при нарушениях цветового зрения) */
     --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
-    --shadow: 0 1px 2px rgba(11,11,11,.04), 0 6px 20px rgba(11,11,11,.05);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --page: #0d0d0d; --surface: #1a1a19; --ink: #fff; --ink2: #c3c2b7; --muted: #898781;
-      --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,.10); --wash: rgba(255,255,255,.06);
-      --inc: #199e70; --exp: #e66767; --bal: #3987e5;
-      --good: #0ca30c; --bad: #e66767; --accent: #256abf; --track: #104281;
-      --hero-a: #0d366b; --hero-b: #1c5cab;
+      --page: #0F1A14; --surface: #17231C; --ink: #F1ECE1; --ink2: #B9C2BB; --muted: #8A968E;
+      --grid: #22322A; --axis: #3C4D43; --border: rgba(241,236,225,.10); --wash: rgba(241,236,225,.07);
+      --inc: #199e70; --exp: #e66767;
+      --good: #5BD08A; --bad: #F0805A;
+      --btn-bg: #F3D34A; --btn-fg: #17231C;
+      --dark-card: #22322A; --dark-field: #17231C; --dark-line: #3C4D43;
       --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
-      --shadow: none;
     }
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
     margin: 0; background: var(--page); color: var(--ink);
-    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+    font: 16px/1.4 var(--text);
     -webkit-tap-highlight-color: transparent;
   }
   .app {
     max-width: 860px; margin: 0 auto; padding: 16px;
-    padding-top: max(16px, env(safe-area-inset-top));
+    padding-top: max(20px, env(safe-area-inset-top));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
-    padding-bottom: max(32px, env(safe-area-inset-bottom));
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
   }
+  section, .monthnav { scroll-margin-top: 12px; }
 
   /* header */
-  .top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .top h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -.01em; }
-  .logo { width: 32px; height: 32px; flex: none; }
+  .top { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; min-height: 44px; }
+  .top h1 { font: 600 15px/1.2 var(--display); margin: 0; flex: 1; }
+  .logo { width: 30px; height: 30px; flex: none; }
   select { font: inherit; }
-  .cur { width: auto; min-height: 36px; padding: 4px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+  .cur { width: auto; min-height: 44px; min-width: 56px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-weight: 600; }
 
   /* cards */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
-  h2 { font-size: 13px; margin: 0 0 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 18px; margin-bottom: 14px; }
+  h2 { font: 500 12px/1.3 var(--display); margin: 0 0 14px; color: var(--ink2); text-transform: uppercase; letter-spacing: .08em; }
   h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
   .hint { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
   .pos { color: var(--good); } .neg { color: var(--bad); }
 
-  /* hero */
-  .hero {
-    color: #fff; border: 0; padding: 24px 20px 20px;
-    background: radial-gradient(120% 140% at 0% 0%, var(--hero-b), var(--hero-a));
-  }
-  .hero .label { font-size: 14px; opacity: .8; }
-  .hero .value { font-size: 52px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; margin: 6px 0 16px; word-break: break-word; }
-  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
-  .chip { flex: 1; min-width: 130px; background: rgba(255,255,255,.14); border-radius: 14px; padding: 10px 14px; }
-  .chip span { display: block; font-size: 12px; opacity: .8; }
+  /* hero: остаток — «билет» с перфорацией */
+  .hero { position: relative; background: var(--butter); color: #17231C; border: 0; border-radius: 28px; padding: 22px 22px 0; }
+  .hero .label { font-size: 13px; font-weight: 500; color: var(--butter-2); }
+  .hero .value { font: 700 44px/1.1 var(--display); letter-spacing: -.02em; margin: 6px 0 14px; word-break: break-word; }
+  .hero .delta { display: inline-flex; background: #17231C; color: #F3D34A; border-radius: 14px; padding: 7px 12px; font-size: 13px; font-weight: 600; }
+  .hero .tear { position: relative; margin: 22px -22px 0; height: 0; border-top: 2px dashed rgba(23,35,28,.35); }
+  .hero .tear::before, .hero .tear::after { content: ""; position: absolute; top: -13px; width: 24px; height: 24px; border-radius: 12px; background: var(--page); }
+  .hero .tear::before { left: -12px; } .hero .tear::after { right: -12px; }
+  .chips { display: flex; gap: 12px; padding: 16px 0 20px; }
+  .chip { flex: 1; min-width: 0; }
+  .chip span { display: block; font-size: 12px; color: var(--butter-2); }
   .chip b { font-size: 18px; }
 
   /* form */
@@ -82,40 +91,50 @@
   form .full { grid-column: 1 / -1; }
   input:not([type=radio]):not([type=checkbox]), button {
     font: inherit; color: var(--ink); width: 100%; min-height: 46px; padding: 10px 14px;
-    border-radius: 12px; border: 1px solid var(--border); background: var(--page);
+    border-radius: 14px; border: 1px solid var(--border); background: var(--page);
     -webkit-appearance: none; appearance: none;
   }
-  input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--bal); outline-offset: 1px; }
+  input:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
   input::placeholder { color: var(--muted); }
-  #amount { font-size: 28px; font-weight: 700; min-height: 60px; }
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; border-radius: 14px; background: var(--wash); }
-  .seg label { text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--ink2); }
+  #amount { font: 700 40px/1.1 var(--display); letter-spacing: -.02em; min-height: 84px; padding: 16px 22px; border: 0; border-radius: 22px; background: var(--butter); color: #17231C; }
+  #amount::placeholder { color: rgba(23,35,28,.4); }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 18px; background: var(--wash); }
+  .seg label { text-align: center; padding: 11px; border-radius: 14px; cursor: pointer; font-weight: 600; color: var(--ink2); }
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg label:has(input:checked) { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
-  .seg label:has(input[value=expense]:checked) { color: var(--bad); }
-  .seg label:has(input[value=income]:checked) { color: var(--good); }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+  .seg label:has(input:checked) { background: var(--ink); color: var(--page); }
+  .seg label:has(input:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+  button.primary { background: var(--btn-bg); border-color: var(--btn-bg); color: var(--btn-fg); font-weight: 700; cursor: pointer; }
+  form button.primary { min-height: 58px; border-radius: 20px; font-size: 17px; }
+
+  .picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .pick { height: 74px; min-height: 74px; padding: 6px; border-radius: 18px; background: var(--surface); flex-direction: column; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 500; line-height: 1.15; text-align: center; cursor: pointer; }
+  .pick svg { width: 24px; height: 24px; flex: none; }
+  .pick[aria-pressed=true] { border: 2px solid var(--ink); font-weight: 700; }
+  .pick.own { border-style: dashed; background: transparent; color: var(--ink2); }
 
   /* month filter */
-  .monthnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 16px; }
-  .monthnav span { font-size: 18px; font-weight: 700; text-transform: capitalize; }
-  .monthnav button { width: 44px; min-height: 44px; padding: 0; font-size: 22px; cursor: pointer; background: var(--surface); }
+  .monthnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 14px; }
+  .monthnav span { font: 500 16px/1.2 var(--display); text-transform: capitalize; }
+  .monthnav button { width: 44px; min-height: 44px; padding: 0; border-radius: 22px; font-size: 22px; cursor: pointer; background: var(--surface); display: grid; place-items: center; }
   .monthnav button:disabled { opacity: .35; cursor: default; }
 
   /* tiles */
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-  .tile { background: var(--page); border-radius: 14px; padding: 12px; min-width: 0; }
+  .tile { background: var(--page); border-radius: 16px; padding: 12px; min-width: 0; }
   .tile span { display: block; font-size: 12px; color: var(--muted); }
   .tile b { display: block; font-size: 18px; margin: 2px 0; overflow-wrap: anywhere; }
   .tile small { font-size: 11px; color: var(--muted); }
+  .tile.net { background: var(--butter); color: #17231C; }
+  .tile.net span, .tile.net small { color: var(--butter-2); }
+  .tile.net b { color: #17231C !important; }
 
   /* averages */
-  .avg { display: grid; grid-template-columns: minmax(70px, auto) repeat(3, 1fr); gap: 1px; background: var(--grid); border-radius: 12px; overflow: hidden; }
+  .avg { display: grid; grid-template-columns: minmax(70px, auto) repeat(3, 1fr); gap: 1px; background: var(--grid); border-radius: 14px; overflow: hidden; }
   .avg > * { background: var(--surface); padding: 10px 6px; text-align: center; font-size: 15px; min-width: 0; }
   .avg .h { font-size: 12px; color: var(--muted); }
   .avg .row { text-align: left; font-weight: 600; }
   .avg b { font-weight: 700; }
-  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; padding: 12px 14px; background: var(--page); border-radius: 12px; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; padding: 12px 14px; background: var(--page); border-radius: 14px; }
   .stat span { font-size: 14px; color: var(--muted); }
   .stat b { font-size: 18px; white-space: nowrap; }
 
@@ -126,7 +145,7 @@
   .chart svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
   .chart .empty { padding: 36px 0; }
   .tip { position: absolute; top: 4px; z-index: 2; pointer-events: none; background: var(--surface); color: var(--ink);
-         border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); white-space: nowrap; }
+         border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); white-space: nowrap; }
   .tip .tt { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
   .tip .tr { display: flex; align-items: center; gap: 8px; line-height: 1.6; }
   .tip .tr i { width: 12px; height: 3px; border-radius: 2px; }
@@ -135,22 +154,21 @@
   .avgwrap { display: grid; grid-template-columns: 1fr; gap: 20px; }
   .avgwrap h3 { font-size: 13px; margin: 0 0 8px; color: var(--ink2); font-weight: 600; }
   @media (min-width: 720px) { .avgwrap { grid-template-columns: 1fr 1fr; align-items: start; } }
-  .pair { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+  .pair { display: grid; grid-template-columns: 1fr; gap: 0 14px; }
   @media (min-width: 720px) { .pair { grid-template-columns: 1fr 1fr; } }
   .donut { position: relative; display: flex; flex-direction: column; align-items: center; }
   .donut svg { width: 190px; height: 190px; overflow: visible; }
   .donut path, .donut circle.ring { cursor: default; transition: opacity .12s; }
   .donut.hov path { opacity: .45; } .donut.hov path.on { opacity: 1; }
   .donut .tip { top: 0; }
-  .lg { width: 100%; margin-top: 14px; display: grid; gap: 8px; }
+  .lg { width: 100%; margin-top: 14px; display: grid; gap: 9px; }
   .lg div { display: flex; align-items: center; gap: 10px; font-size: 14px; }
   .lg i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
   .lg span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink2); }
   .lg b { white-space: nowrap; }
   .lg em { font-style: normal; color: var(--muted); width: 38px; text-align: right; }
 
-  textarea { font: inherit; color: var(--ink); width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); background: var(--page); resize: vertical; }
-  textarea:focus-visible { outline: 2px solid var(--bal); outline-offset: 1px; }
+  textarea { font: inherit; color: var(--ink); width: 100%; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--page); resize: vertical; }
   .stack { display: grid; gap: 10px; margin-top: 12px; }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .row2 button, #smsParse { cursor: pointer; }
@@ -164,12 +182,9 @@
   .banner[hidden] { display: none; }
   .banner .bn { flex: 1; min-width: 0; display: grid; gap: 2px; }
   .banner .bn span { font-size: 13px; opacity: .8; }
-  .banner button { width: auto; min-width: 110px; flex: none; cursor: pointer; }
+  .banner button { width: auto; min-width: 110px; flex: none; cursor: pointer; background: var(--butter); color: #17231C; border: 0; font-weight: 700; }
   details.adv { margin-top: 16px; }
   details.adv summary { font-size: 13px; color: var(--muted); }
-  .picker { display: flex; flex-wrap: wrap; gap: 8px; }
-  .pick { width: auto !important; min-height: 38px !important; padding: 4px 12px !important; border-radius: 999px !important; font-size: 14px; color: var(--ink2) !important; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-  .pick[aria-pressed=true] { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; font-weight: 600; }
 
   details summary { cursor: pointer; font-weight: 600; color: var(--ink2); }
   table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
@@ -178,36 +193,54 @@
   th:first-child, td:first-child { text-align: left; }
   td { text-align: right; }
 
-  /* debt */
-  .meter { height: 10px; border-radius: 5px; background: var(--track); margin-top: 12px; overflow: hidden; }
-  .meter i { display: block; height: 100%; border-radius: 5px; background: var(--accent); }
-  .check { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--ink2); }
-  .check input { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
-  .debtres { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--page); font-size: 15px; }
-  .debtres strong { font-size: 22px; }
-  .debtres .sub { color: var(--muted); font-size: 13px; }
+  /* долг — тёмная карточка */
+  .debt-card { background: var(--dark-card); border-color: transparent; color: var(--dark-text); }
+  .debt-card h2, .debt-card .hint, .debt-card .check { color: var(--dark-muted); }
+  .debt-card input:not([type=checkbox]) { background: var(--dark-field); border-color: var(--dark-line); color: var(--dark-text); }
+  .debt-card input::placeholder { color: var(--dark-muted); }
+  .debt-card .stat { background: var(--dark-field); }
+  .debt-card .stat span { color: var(--dark-muted); }
+  .meter { height: 12px; border-radius: 6px; background: var(--dark-line); margin-top: 14px; overflow: hidden; }
+  .meter i { display: block; height: 100%; border-radius: 6px; background: var(--butter); }
+  .check { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; }
+  .check input { width: 22px; height: 22px; flex: none; accent-color: var(--butter); }
+  .debtres { margin-top: 14px; padding: 14px; border-radius: 16px; background: var(--butter); color: #17231C; font-size: 15px; }
+  .debtres strong { font: 700 28px/1.2 var(--display); }
+  .debtres .sub { color: var(--butter-2); font-size: 13px; margin-top: 2px; }
 
   /* history */
   .day { font-size: 12px; color: var(--muted); font-weight: 600; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .05em; }
   .day:first-child { margin-top: 0; }
-  .tx { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
-  .ico { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 18px; background: var(--wash); }
-  .ico.income { color: var(--good); } .ico.expense { color: var(--bad); }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+  .ico { width: 42px; height: 42px; flex: none; border-radius: 14px; display: grid; place-items: center; background: color-mix(in srgb, currentColor 14%, transparent); }
+  .ico svg { width: 22px; height: 22px; }
   .tx .info { flex: 1; min-width: 0; }
   .tx .cat { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tx .meta { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx .meta { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .tag { flex: none; background: var(--ink); color: var(--page); border-radius: 8px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
   .tx .sum { font-weight: 700; white-space: nowrap; }
   .tx button { width: 36px; min-height: 36px; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
   button.more { margin-top: 12px; cursor: pointer; color: var(--ink2); }
   .empty { color: var(--muted); text-align: center; padding: 16px 0; }
 
-  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10;
-           display: flex; align-items: center; gap: 12px; background: var(--ink); color: var(--page); padding: 10px 12px 10px 16px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+  /* нижняя панель */
+  .nav { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 860px; z-index: 20;
+         height: calc(84px + env(safe-area-inset-bottom)); padding: 0 12px env(safe-area-inset-bottom);
+         background: var(--dark-card); color: var(--dark-muted); border-radius: 28px 28px 0 0;
+         display: flex; align-items: center; justify-content: space-around; }
+  .nav button { width: 64px; min-height: 56px; padding: 0; border: 0; background: none; color: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 11px; cursor: pointer; }
+  .nav button svg { width: 22px; height: 22px; }
+  .nav button.on { color: var(--butter); font-weight: 600; }
+  .nav button.fab { width: 56px; height: 56px; min-height: 56px; border-radius: 28px; background: var(--butter); color: #17231C; margin-top: -30px; border: 5px solid var(--page); }
+  .nav button.fab svg { width: 26px; height: 26px; }
+
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 30; max-width: calc(100% - 32px);
+           display: flex; align-items: center; gap: 12px; background: var(--ink); color: var(--page); padding: 10px 12px 10px 16px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
   .toast[hidden] { display: none; }
-  .toast button { width: auto; min-height: 32px; padding: 2px 12px; border: 0; background: rgba(128,128,128,.3); color: inherit; border-radius: 10px; font-weight: 600; cursor: pointer; }
+  .toast button { width: auto; min-height: 32px; padding: 2px 12px; border: 0; background: rgba(128,128,128,.3); color: inherit; border-radius: 10px; font-weight: 600; cursor: pointer; flex: none; }
 
   @media (max-width: 520px) {
-    .hero .value { font-size: 44px; }
+    .hero .value { font-size: 40px; }
     .avg > * { padding: 10px 2px; font-size: 14px; }
     .tiles { grid-template-columns: 1fr; }
     .tile { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
@@ -219,10 +252,10 @@
 <div class="app">
   <header class="top">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="#2563eb"/>
-      <rect x="6.5" y="15" width="5" height="10" rx="1" fill="#4ade80"/>
-      <rect x="13.5" y="7" width="5" height="18" rx="1" fill="#fff"/>
-      <rect x="20.5" y="12" width="5" height="13" rx="1" fill="#f87171"/>
+      <rect width="32" height="32" rx="9" fill="#17231C"/>
+      <rect x="7" y="15" width="4.5" height="10" rx="1.2" fill="#F3D34A"/>
+      <rect x="13.75" y="7" width="4.5" height="18" rx="1.2" fill="#FBF8F0"/>
+      <rect x="20.5" y="12" width="4.5" height="13" rx="1.2" fill="#F0805A"/>
     </svg>
     <h1>Мои финансы</h1>
     <select id="currency" class="cur" aria-label="Валюта">
@@ -230,9 +263,11 @@
     </select>
   </header>
 
-  <section class="card hero">
-    <div class="label">Остаток</div>
+  <section class="card hero" id="top">
+    <div class="label">Остаток на сегодня</div>
     <div class="value" id="balance">0</div>
+    <div class="delta" id="heroDelta"></div>
+    <div class="tear" aria-hidden="true"></div>
     <div class="chips">
       <div class="chip"><span>Заработано всего</span><b id="totalIncome">0</b></div>
       <div class="chip"><span>Потрачено всего</span><b id="totalExpense">0</b></div>
@@ -240,7 +275,7 @@
   </section>
 
   <section class="card banner" id="pushBanner" hidden>
-    <div class="bn"><b id="pushBannerTitle">🔔 Включить уведомления</b><span id="pushBannerText">О каждом списании с карты — сразу на телефон</span></div>
+    <div class="bn"><b id="pushBannerTitle">Включить уведомления</b><span id="pushBannerText">О каждом списании с карты — сразу на телефон</span></div>
     <button type="button" class="primary" id="pushBannerBtn">Включить</button>
   </section>
 
@@ -249,7 +284,7 @@
     <div id="reviewList"></div>
   </section>
 
-  <section class="card">
+  <section class="card" id="addCard">
     <h2>Новая операция</h2>
     <form id="form">
       <div class="seg full">
@@ -276,11 +311,11 @@
     <div class="tiles">
       <div class="tile"><span>Заработано</span><b id="kInc">0</b><small id="kIncPrev"></small></div>
       <div class="tile"><span>Потрачено</span><b id="kExp">0</b><small id="kExpPrev"></small></div>
-      <div class="tile"><span>Итог</span><b id="kNet">0</b><small id="kNetPrev"></small></div>
+      <div class="tile net"><span>Итог</span><b id="kNet">0</b><small id="kNetPrev"></small></div>
     </div>
   </section>
 
-  <section class="card">
+  <section class="card" id="charts">
     <h2>Динамика остатка</h2>
     <div class="chart" id="chartBal"><div class="tip" hidden></div></div>
   </section>
@@ -322,7 +357,7 @@
     </div>
   </section>
 
-  <section class="card">
+  <section class="card debt-card" id="debtCard">
     <h2>Долг</h2>
     <input id="debt" type="text" inputmode="decimal" autocomplete="off" placeholder="Сумма долга (0 — нет долга)" aria-label="Сумма долга">
     <label class="check"><input type="checkbox" id="debtUseBalance" checked><span>Погашать в том числе из текущего остатка</span></label>
@@ -350,9 +385,9 @@
     </details>
   </section>
 
-  <section class="card">
+  <section class="card" id="bankCard">
     <details id="syncDetails">
-      <summary>🏦 Автоввод расходов из банка</summary>
+      <summary>Автоввод расходов из банка</summary>
       <p class="hint">Телефон пересылает SMS от банка на ваш личный сервер, а приложение забирает оттуда новые операции и вносит их само. Подключение происходит по личной ссылке, вводить ничего не нужно.</p>
       <div class="hint" id="syncStatus"></div>
       <div class="stack">
@@ -374,7 +409,7 @@
           <button type="button" class="primary" id="syncSave">Сохранить и проверить</button>
         </div>
       </details>
-      <h3 class="sub">🔔 Уведомления на телефон</h3>
+      <h3 class="sub">Уведомления на телефон</h3>
       <p class="hint">При каждом сообщении от банка на телефон придёт уведомление с суммой, категорией и остатком на карте; по нажатию операция внесётся в приложение. На iPhone работает, если открыть приложение с иконки на экране «Домой» (iOS 16.4 и новее).</p>
       <div class="stack">
         <div class="row2">
@@ -382,6 +417,15 @@
           <button type="button" id="pushTest">Тестовое уведомление</button>
         </div>
         <div class="hint" id="pushStatus"></div>
+      </div>
+      <h3 class="sub">Ежедневное напоминание</h3>
+      <p class="hint">Раз в день придёт уведомление, чтобы не забыть внести траты. Время можно поменять.</p>
+      <div class="stack">
+        <div class="row2">
+          <label class="check" style="margin-top:0"><input type="checkbox" id="remindOn" checked><span>Напоминать</span></label>
+          <input type="time" id="remindTime" value="21:00" aria-label="Время напоминания">
+        </div>
+        <div class="hint" id="remindStatus" style="margin-top:0"></div>
       </div>
       <h3 class="sub">Разобрать SMS вручную</h3>
       <div class="stack">
@@ -397,6 +441,14 @@
     <button type="button" class="more" id="more" hidden>Показать ещё</button>
   </section>
 </div>
+
+<nav class="nav" aria-label="Разделы">
+  <button type="button" data-go="top" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg><span>Главная</span></button>
+  <button type="button" data-go="charts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"/></svg><span>Графики</span></button>
+  <button type="button" data-go="addCard" class="fab" aria-label="Добавить операцию"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button type="button" data-go="debtCard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18"/></svg><span>Долг</span></button>
+  <button type="button" data-go="bankCard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"/></svg><span>Банк</span></button>
+</nav>
 
 <div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="undo">Отменить</button></div>
 
@@ -558,11 +610,11 @@ function drawBalance(D) {
   el('path', { d: `${line}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z`, fill: 'var(--bal)', 'fill-opacity': .1 }, svg);
   el('path', { d: line, fill: 'none', stroke: 'var(--bal)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
   const ex = x(pts.length - 1), ey = y(pts[pts.length - 1]);
-  el('circle', { cx: ex, cy: ey, r: 5, fill: 'var(--bal)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+  el('circle', { cx: ex, cy: ey, r: 6, fill: 'var(--butter)', stroke: 'var(--ink)', 'stroke-width': 2 }, svg);
   const lab = el('text', { x: Math.min(ex, W - mr), y: ey - 12, 'text-anchor': ex > W - 70 ? 'end' : 'middle', 'font-size': 12, 'font-weight': 600, fill: 'var(--ink)' }, svg);
   lab.textContent = fmt0(pts[pts.length - 1]);
   const cross = el('line', { y1: mt, y2: mt + ph, stroke: 'var(--axis)', 'stroke-width': 1, visibility: 'hidden' }, svg);
-  const dot = el('circle', { r: 5, fill: 'var(--bal)', stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' }, svg);
+  const dot = el('circle', { r: 6, fill: 'var(--butter)', stroke: 'var(--ink)', 'stroke-width': 2, visibility: 'hidden' }, svg);
   const move = e => {
     const i = dayIndex(e, svg, W, ml, bw, D.lastIdx);
     cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
@@ -728,8 +780,9 @@ function drawHistory() {
   shown.forEach(i => {
     if (i.date !== prev) { out.push(h('div', { class: 'day', text: label(i.date) })); prev = i.date; }
     out.push(h('div', { class: 'tx' },
-      h('div', { class: 'ico', text: catIcon(i.type, i.category) }),
-      h('div', { class: 'info' }, h('div', { class: 'cat', text: i.category }), (i.note || i.auto) ? h('div', { class: 'meta', text: (i.auto ? '🏦 ' : '') + (i.note || 'из банка') }) : ''),
+      (m => h('div', { class: 'ico', style: `color:var(--${m[1]})` }, iconEl(m[0])))(catMeta(i.type, i.category)),
+      h('div', { class: 'info' }, h('div', { class: 'cat', text: i.category }),
+        (i.note || i.auto) ? h('div', { class: 'meta' }, i.note ? h('span', { text: i.note }) : '', i.auto ? h('span', { class: 'tag', text: 'из банка' }) : '') : ''),
       h('div', { class: 'sum ' + (i.type === 'income' ? 'pos' : 'neg'), text: (i.type === 'income' ? '+' : '−') + fmt(i.amount) }),
       h('button', { type: 'button', 'aria-label': 'Удалить', title: 'Удалить', text: '✕', onclick: () => remove(i.id) })));
   });
@@ -738,13 +791,48 @@ function drawHistory() {
 }
 
 /* ── категории на выбор ── */
-const CATS = {
-  expense: { 'Продукты': '🛒', 'Кафе и рестораны': '🍽️', 'Транспорт': '🚌', 'Жильё и коммуналка': '🏠', 'Связь и интернет': '📱',
-             'Здоровье': '💊', 'Одежда': '👕', 'Развлечения': '🎬', 'Образование': '🎓', 'Подарки': '🎁', 'Питомцы': '🐾',
-             'Долги и кредиты': '💳', 'Прочее': '📦' },
-  income:  { 'Зарплата': '💼', 'Подработка': '🛠️', 'Подарок': '🎁', 'Проценты и инвестиции': '📈', 'Возврат': '🔁', 'Другое': '💵' },
+const ICONS = {
+  cart: '<path d="M3 4h2l2.2 10.2a1 1 0 0 0 1 .8h8.6a1 1 0 0 0 1-.8L19.5 8H6"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/>',
+  food: '<path d="M7 3v7a2 2 0 0 0 2 2v9M11 3v7M9 3v7M17 3c-2 2-3 4-3 7 0 1.5 1 2 3 2v9"/>',
+  bus: '<rect x="4" y="4" width="16" height="13" rx="3"/><path d="M4 11h16M8 21v-4M16 21v-4"/>',
+  home: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+  phone: '<rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/>',
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  shirt: '<path d="M8 3l-4 4 3 2v11h10V9l3-2-4-4c-1 1.5-2.2 2-4 2s-3-.5-4-2z"/>',
+  film: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M10 9.5v5l4-2.5z"/>',
+  cap: '<path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.5v4.5c0 1.2 2.5 2.5 5.5 2.5s5.5-1.3 5.5-2.5v-4.5"/>',
+  gift: '<rect x="4" y="9" width="16" height="11" rx="1.5"/><path d="M3 9h18M12 9v11M12 9c-2.5 0-4-1-4-2.5S9.5 4 12 9zM12 9c2.5 0 4-1 4-2.5S14.5 4 12 9z"/>',
+  paw: '<circle cx="7" cy="10" r="1.7"/><circle cx="11" cy="6.5" r="1.7"/><circle cx="16" cy="7.5" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/><path d="M8.5 17c0-3 2-5 4-5s4 2 4 5c0 2-1.5 3-4 3s-4-1-4-3z"/>',
+  card: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/>',
+  box: '<path d="M12 3l8 4-8 4-8-4zM4 12l8 4 8-4M4 17l8 4 8-4"/>',
+  briefcase: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/>',
+  laptop: '<rect x="5" y="5" width="14" height="10" rx="1.5"/><path d="M3 19h18"/>',
+  chart: '<path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/>',
+  undo: '<path d="M9 8L4 13l5 5M4 13h10a5 5 0 0 0 0-10h-3"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v9M9.5 10h3.6a1.5 1.5 0 0 1 0 3h-2.2a1.5 1.5 0 0 0 0 3H14.5"/>',
+  tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
 };
-const catIcon = (type, name) => CATS[type][name] || '🏷️';
+// [значок, цвет из палитры --s1…--s8]
+const CATS = {
+  expense: {
+    'Продукты': ['cart', 's6'], 'Кафе и рестораны': ['food', 's7'], 'Транспорт': ['bus', 's2'], 'Жильё и коммуналка': ['home', 's3'],
+    'Связь и интернет': ['phone', 's4'], 'Здоровье': ['heart', 's1'], 'Одежда': ['shirt', 's5'], 'Развлечения': ['film', 's4'],
+    'Образование': ['cap', 's2'], 'Подарки': ['gift', 's5'], 'Питомцы': ['paw', 's7'], 'Долги и кредиты': ['card', 's1'], 'Прочее': ['box', 's8'],
+  },
+  income: {
+    'Зарплата': ['briefcase', 's6'], 'Подработка': ['laptop', 's4'], 'Подарок': ['gift', 's5'],
+    'Проценты и инвестиции': ['chart', 's2'], 'Возврат': ['undo', 's3'], 'Другое': ['coin', 's8'],
+  },
+};
+const catMeta = (type, name) => CATS[type][name] || ['tag', 's8'];
+function iconEl(icon, color) {
+  const s = document.createElementNS(NS, 'svg');
+  for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) s.setAttribute(k, v);
+  s.innerHTML = ICONS[icon];                                   // константы из этого файла, не пользовательский текст
+  if (color) s.style.color = `var(--${color})`;
+  return s;
+}
 const curType = () => document.querySelector('input[name=type]:checked').value;
 const picked = { expense: 'Продукты', income: 'Зарплата' };   // выбранная категория для каждого типа
 let customMode = false;
@@ -753,10 +841,10 @@ function drawPicker() {
   const type = curType();
   const own = [...new Set(items.filter(i => i.type === type).map(i => i.category))].filter(c => !(c in CATS[type]));
   const names = [...Object.keys(CATS[type]), ...own];
-  const chip = (label, icon, active, onclick) => h('button', { type: 'button', class: 'pick', 'aria-pressed': String(active), onclick }, h('span', { text: icon }), label);
+  const chip = (label, node, active, onclick, cls = '') => h('button', { type: 'button', class: ('pick ' + cls).trim(), 'aria-pressed': String(active), onclick }, node, h('span', { text: label }));
   $('picker').replaceChildren(
-    ...names.map(n => chip(n, catIcon(type, n), !customMode && picked[type] === n, () => { customMode = false; picked[type] = n; drawPicker(); })),
-    chip('Своя', '＋', customMode, () => { customMode = true; drawPicker(); $('customCat').focus(); }));
+    ...names.map(n => { const [ic, col] = catMeta(type, n); return chip(n, iconEl(ic, col), !customMode && picked[type] === n, () => { customMode = false; picked[type] = n; drawPicker(); }); }),
+    chip('Своя', iconEl('plus'), customMode, () => { customMode = true; drawPicker(); $('customCat').focus(); }, 'own'));
   $('customCat').hidden = !customMode;
 }
 function chosenCategory() {
@@ -781,6 +869,7 @@ function render() {
   const mNet = D.mInc - D.mExp;
   $('kInc').textContent = fmt0(D.mInc); $('kExp').textContent = fmt0(D.mExp);
   $('kNet').textContent = signed(mNet, fmt0); $('kNet').className = mNet < 0 ? 'neg' : 'pos';
+  $('heroDelta').textContent = `${signed(mNet, fmt0)} за месяц`;
   $('kIncPrev').textContent = prev.n ? `прошлый: ${fmt0(prev.inc)}` : '';
   $('kExpPrev').textContent = prev.n ? `прошлый: ${fmt0(prev.exp)}` : '';
   $('kNetPrev').textContent = prev.n ? `прошлый: ${signed(prev.inc - prev.exp, fmt0)}` : '';
@@ -813,9 +902,9 @@ function renderDebt(balance, per, D) {
   const box = $('debtResult');
   const say = (...n) => box.replaceChildren(...n);
   if (!(debt.amount > 0)) return say('Введите сумму долга.');
-  if (left <= 0) return say('✅ Долг уже покрыт текущим остатком.');
+  if (left <= 0) return say('Долг уже покрыт текущим остатком.');
   if (!D.count) return say('Нет операций за выбранный месяц, чтобы посчитать темп.');
-  if (per.net <= 0) return say('⚠️ При таком темпе долг не погасить: расходы за месяц не меньше заработка.');
+  if (per.net <= 0) return say('При таком темпе долг не погасить: расходы за месяц не меньше заработка.');
   const need = Math.ceil(left / per.net);
   if (need > 36500) return say('Больше 100 лет — темп слишком низкий.');
   const d = new Date(); d.setDate(d.getDate() + need);
@@ -904,6 +993,7 @@ async function ensurePush() {
     if (!key) return;
     const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
     await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
+    pushReminder();
   } catch {}
 }
 async function enablePush() {
@@ -920,6 +1010,7 @@ async function enablePush() {
     const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(key) });
     await api('/push/subscribe', { method: 'POST', body: JSON.stringify({ subscription: sub.toJSON() }) });
     sync.push = true; saveSync();
+    pushReminder();
     refreshPushBanner();
     setPush('Включено ✓ Теперь о каждом списании придёт уведомление.');
   } catch (e) { setPush('Не получилось включить: ' + e.message, true); }
@@ -948,7 +1039,7 @@ async function syncInbox() {
     if (messages.length) render();
     if (added === 1 && !skipped) {                             // одна операция — показываем её данные
       const it = items[items.length - 1];
-      toast(`🏦 ${it.type === 'income' ? '+' : '−'}${fmt(it.amount)} · ${it.category}${it.note ? ' · ' + it.note : ''}`, false);
+      toast(`${it.type === 'income' ? '+' : '−'}${fmt(it.amount)} · ${it.category}${it.note ? ' · ' + it.note : ''}`, false);
     } else if (added || skipped) toast(`Из банка добавлено: ${added}` + (skipped ? `, переводов пропущено: ${skipped}` : ''), false);
   } catch (e) {
     setStatus('Не удалось связаться с сервером: ' + e.message, true);
@@ -1050,9 +1141,48 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('mess
 document.addEventListener('visibilitychange', () => { if (!document.hidden) syncInbox(); });
 setInterval(() => { if (!document.hidden) syncInbox(); }, 60000);
 
+/* ── ежедневное напоминание (рассылает сервер по расписанию) ── */
+const tzName = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Moscow'; } catch { return 'Europe/Moscow'; } };
+function loadReminder() {
+  sync.reminder = { enabled: true, time: '21:00', ...(sync.reminder || {}) };
+  $('remindOn').checked = sync.reminder.enabled; $('remindTime').value = sync.reminder.time;
+}
+async function pushReminder() {
+  if (!sync.url || !sync.token) return;
+  const r = sync.reminder, st = $('remindStatus');
+  try {
+    await api('/reminder', { method: 'POST', body: JSON.stringify({ enabled: r.enabled, time: r.time, tz: tzName() }) });
+    st.textContent = r.enabled ? `Напоминание включено: каждый день в ${r.time}` : 'Напоминание выключено';
+    st.style.color = '';
+  } catch (e) { st.textContent = 'Не удалось сохранить напоминание: ' + e.message; st.style.color = 'var(--bad)'; }
+}
+function reminderChanged() {
+  sync.reminder = { enabled: $('remindOn').checked, time: $('remindTime').value || '21:00' };
+  saveSync(); pushReminder();
+}
+$('remindOn').addEventListener('change', reminderChanged);
+$('remindTime').addEventListener('change', reminderChanged);
+
+/* ── нижняя панель ── */
+const navBtns = [...document.querySelectorAll('.nav button[data-go]')];
+navBtns.forEach(b => b.addEventListener('click', () => {
+  const id = b.dataset.go;
+  if (id === 'bankCard') $('syncDetails').open = true;
+  document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (id === 'addCard') setTimeout(() => $('amount').focus({ preventScroll: true }), 400);
+}));
+function markNav() {
+  const y = innerHeight * 0.4; let now = 'top';
+  for (const id of ['charts', 'debtCard', 'bankCard']) if (document.getElementById(id).getBoundingClientRect().top <= y) now = id;
+  navBtns.forEach(b => b.classList.toggle('on', b.dataset.go === now));
+}
+addEventListener('scroll', markNav, { passive: true });
+
 $('date').value = today();
 load();
 loadSync();
+loadReminder();
+markNav();
 lastW = innerWidth;
 render();
 (async () => { await connectFromLink(); refreshPushBanner(); ensurePush(); syncInbox(); })();
