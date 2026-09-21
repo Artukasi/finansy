@@ -1120,6 +1120,13 @@ async function copyText(text, done) {
 $('copyUrl').addEventListener('click', () => copyText(sync.url.replace(/\/+$/, '') + '/add', 'Адрес скопирован'));
 $('copyAuth').addEventListener('click', () => sync.token ? copyText('Bearer ' + sync.token, 'Скопировано: вставьте как значение заголовка Authorization') : toast('Сначала подключите приложение по личной ссылке', false));
 $('pushBannerBtn').addEventListener('click', enablePush);
+// iOS показывает запрос на уведомления только в ответ на касание: спрашиваем при первом касании экрана, искать кнопку не нужно
+let autoAsked = false;
+document.addEventListener('pointerup', () => {
+  if (autoAsked || !location.protocol.startsWith('http') || !pushSupported() || Notification.permission !== 'default' || !sync.url || !sync.token) return;
+  autoAsked = true;
+  enablePush();
+});
 $('syncNow').addEventListener('click', () => { if (!sync.url) return setStatus('Сначала подключите сервер.', true); setStatus('Проверяем…'); syncInbox(); });
 $('smsParse').addEventListener('click', () => {
   const text = $('smsText').value.trim();
