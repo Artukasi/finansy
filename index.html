@@ -54,11 +54,19 @@
   .avgbal { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; padding: 12px; background: var(--bg); border-radius: 10px; }
   .avgbal span { font-size: 14px; color: var(--muted); }
   .avgbal b { font-size: 18px; white-space: nowrap; }
+  .monthnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .monthnav span { font-weight: 600; text-transform: capitalize; }
+  .monthnav button { width: 44px; padding: 0; font-size: 20px; cursor: pointer; }
+  .monthnav button:disabled { opacity: .35; cursor: default; }
+  .check { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; }
+  .check input { width: 22px; min-height: 22px; height: 22px; flex: none; }
+  .debtres { margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--bg); font-size: 15px; }
+  .debtres strong { font-size: 20px; }
   .hint { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
   form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   form .full { grid-column: 1 / -1; }
   input, select, button { font: inherit; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--input); color: var(--text); width: 100%; }
-  input:not([type=radio]), button { -webkit-appearance: none; appearance: none; }
+  input:not([type=radio]):not([type=checkbox]), button { -webkit-appearance: none; appearance: none; }
   input[type=date] { text-align: left; }
   .seg { display: flex; gap: 8px; }
   .seg label { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
@@ -102,16 +110,32 @@
   </section>
 
   <section class="card">
-    <h2>Средние значения</h2>
+    <h2>Средние значения за месяц</h2>
+    <div class="monthnav">
+      <button type="button" id="prevMonth" aria-label="Предыдущий месяц">‹</button>
+      <span id="monthLabel"></span>
+      <button type="button" id="nextMonth" aria-label="Следующий месяц">›</button>
+    </div>
     <div class="avg">
       <div class="h"></div><div class="h">в день</div><div class="h">в неделю</div><div class="h">в месяц</div>
       <div class="row">Расход</div>
       <b class="neg" id="expDay">0</b><b class="neg" id="expWeek">0</b><b class="neg" id="expMonth">0</b>
       <div class="row">Заработок</div>
       <b class="pos" id="incDay">0</b><b class="pos" id="incWeek">0</b><b class="pos" id="incMonth">0</b>
+      <div class="row">Итого</div>
+      <b id="netDay">0</b><b id="netWeek">0</b><b id="netMonth">0</b>
     </div>
     <div class="avgbal"><span>Средний остаток<br>(на конец дня)</span><b id="avgBalance">0</b></div>
     <p class="hint" id="avgHint"></p>
+  </section>
+
+  <section class="card">
+    <h2>Долг</h2>
+    <input id="debt" type="text" inputmode="decimal" autocomplete="off" placeholder="Сумма долга (0 — нет долга)">
+    <label class="check"><input type="checkbox" id="debtUseBalance" checked><span>Погашать в том числе из текущего остатка</span></label>
+    <div class="avgbal"><span>Осталось погасить</span><b id="debtLeft">0</b></div>
+    <div class="debtres" id="debtResult"></div>
+    <p class="hint">Темп берётся из выбранного месяца: заработок минус расходы. Когда отдадите часть долга, уменьшите сумму в поле.</p>
   </section>
 
   <section class="card">
@@ -137,17 +161,27 @@
 </div>
 
 <script>
-const KEY = 'budget.v1', CUR_KEY = 'budget.currency';
+const KEY = 'budget.v1', CUR_KEY = 'budget.currency', DEBT_KEY = 'budget.debt';
 const $ = id => document.getElementById(id);
 let items = [];
+let debt = { amount: 0, useBalance: true };
+const now = new Date();
+let view = { y: now.getFullYear(), m: now.getMonth() };   // просматриваемый месяц
 
 function load() {
   try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch { items = []; }
   try { $('currency').value = localStorage.getItem(CUR_KEY) || '₽'; } catch {}
+  try { debt = { ...debt, ...JSON.parse(localStorage.getItem(DEBT_KEY)) }; } catch {}
+  $('debt').value = debt.amount ? String(debt.amount).replace('.', ',') : '';
+  $('debtUseBalance').checked = !!debt.useBalance;
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {}
 }
+function saveDebt() {
+  try { localStorage.setItem(DEBT_KEY, JSON.stringify(debt)); } catch {}
+}
+const parseAmount = s => parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
 
 const today = () => {
   const d = new Date();
@@ -169,33 +203,70 @@ function render() {
   $('totalIncome').textContent = fmt(income);
   $('totalExpense').textContent = fmt(expense);
 
-  // Период: от первой операции до сегодня (или до последней, если она в будущем), включительно
-  let days = 1, avgBalance = 0;
-  if (items.length) {
-    const nums = items.map(i => dayNum(i.date));
-    const first = Math.min(...nums);
-    const last = Math.max(dayNum(today()), ...nums);
-    days = last - first + 1;
+  // ── Средние значения за выбранный месяц ──
+  const monthFirst = Date.UTC(view.y, view.m, 1) / 864e5;
+  const dim = new Date(view.y, view.m + 1, 0).getDate();
+  const monthLast = monthFirst + dim - 1;
+  const nums = items.map(i => dayNum(i.date));
+  const isCurrent = view.y === now.getFullYear() && view.m === now.getMonth();
 
-    // Остаток на конец каждого дня периода → среднее по дням
+  // Период: с 1-го числа (или с первой операции) до конца месяца / до сегодня
+  let start = nums.length ? Math.max(monthFirst, Math.min(...nums)) : monthFirst;
+  const end = Math.min(monthLast, Math.max(dayNum(today()), ...nums));
+  const days = Math.max(0, end - start + 1);
+
+  const monthItems = items.filter(i => { const n = dayNum(i.date); return n >= monthFirst && n <= monthLast; });
+  const mInc = monthItems.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
+  const mExp = monthItems.filter(i => i.type === 'expense').reduce((s, i) => s + i.amount, 0);
+
+  // Остаток на конец каждого дня периода (с учётом всего, что было раньше) → среднее по дням
+  let avgBalance = 0;
+  if (days > 0) {
     const net = new Array(days).fill(0);
-    items.forEach(i => { net[dayNum(i.date) - first] += i.type === 'income' ? i.amount : -i.amount; });
-    let running = 0, sum = 0;
-    net.forEach(n => { running += n; sum += running; });
+    let running = 0;
+    items.forEach(i => {
+      const delta = i.type === 'income' ? i.amount : -i.amount, n = dayNum(i.date);
+      if (n < start) running += delta; else if (n <= end) net[n - start] += delta;
+    });
+    let sum = 0;
+    net.forEach(d => { running += d; sum += running; });
     avgBalance = sum / days;
   }
-  const rows = { exp: expense, inc: income };
-  for (const [k, total] of Object.entries(rows)) {
-    const perDay = total / days;
-    $(k + 'Day').textContent = fmt0(perDay);
-    $(k + 'Week').textContent = fmt0(perDay * 7);
-    $(k + 'Month').textContent = fmt0(perDay * 30.44);
+
+  const perDay = { exp: days ? mExp / days : 0, inc: days ? mInc / days : 0 };
+  perDay.net = perDay.inc - perDay.exp;
+  for (const k of ['exp', 'inc', 'net']) {
+    $(k + 'Day').textContent = fmt0(perDay[k]);
+    $(k + 'Week').textContent = fmt0(perDay[k] * 7);
+    $(k + 'Month').textContent = fmt0(perDay[k] * dim);
   }
+  for (const id of ['netDay', 'netWeek', 'netMonth']) $(id).className = perDay.net < 0 ? 'neg' : 'pos';
   $('avgBalance').textContent = fmt(avgBalance);
   $('avgBalance').className = avgBalance < 0 ? 'neg' : '';
-  $('avgHint').textContent = items.length
-    ? `По всей истории: ${days} дн. Неделя и месяц — пересчёт среднего за день. Средний остаток — среднее из остатков на конец каждого дня.`
-    : 'Добавьте операции, чтобы увидеть средние значения.';
+
+  $('monthLabel').textContent = new Date(view.y, view.m, 1).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/\s*г\.$/, '');
+  $('nextMonth').disabled = isCurrent;
+  $('avgHint').textContent = days
+    ? `Период: ${days} дн. Неделя — среднее за день ×7, месяц — ×${dim}${isCurrent ? ' (прогноз до конца месяца)' : ''}. Средний остаток — среднее из остатков на конец каждого дня.`
+    : 'В этом месяце пока нет данных.';
+
+  // ── Долг: за сколько дней погасится при темпе выбранного месяца ──
+  const left = debt.amount - (debt.useBalance ? balance : 0);
+  $('debtLeft').textContent = fmt(Math.max(0, left));
+  let msg;
+  if (!(debt.amount > 0)) msg = 'Введите сумму долга.';
+  else if (left <= 0) msg = '✅ Долг уже покрыт текущим остатком.';
+  else if (!days) msg = 'Нет данных за выбранный месяц, чтобы посчитать темп.';
+  else if (perDay.net <= 0) msg = '⚠️ При таком темпе долг не погасить: расходы за месяц не меньше заработка.';
+  else {
+    const need = Math.ceil(left / perDay.net);
+    if (need > 36500) msg = 'Больше 100 лет — темп слишком низкий.';
+    else {
+      const d = new Date(); d.setDate(d.getDate() + need);
+      msg = `Останется <strong>${need.toLocaleString('ru-RU')} дн.</strong> (≈ ${(need / 30.44).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} мес.), примерно до ${d.toLocaleDateString('ru-RU')}.<br><span style="color:var(--muted)">Чистый темп: ${fmt0(perDay.net)} в день.</span>`;
+    }
+  }
+  $('debtResult').innerHTML = msg;
 
   const cats = [...new Set(items.map(i => i.category))];
   $('cats').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
@@ -214,7 +285,7 @@ function render() {
 
 $('form').addEventListener('submit', e => {
   e.preventDefault();
-  const amount = parseFloat($('amount').value.replace(/\s/g, '').replace(',', '.'));
+  const amount = parseAmount($('amount').value);
   if (!(amount > 0)) return;
   items.push({
     id: Date.now(),
@@ -240,6 +311,26 @@ $('list').addEventListener('click', e => {
 
 $('currency').addEventListener('change', () => {
   try { localStorage.setItem(CUR_KEY, $('currency').value); } catch {}
+  render();
+});
+
+$('debt').addEventListener('input', () => {
+  const v = parseAmount($('debt').value);
+  debt.amount = v > 0 ? v : 0;
+  saveDebt();
+  render();
+});
+$('debtUseBalance').addEventListener('change', () => {
+  debt.useBalance = $('debtUseBalance').checked;
+  saveDebt();
+  render();
+});
+$('prevMonth').addEventListener('click', () => {
+  view = view.m === 0 ? { y: view.y - 1, m: 11 } : { y: view.y, m: view.m - 1 };
+  render();
+});
+$('nextMonth').addEventListener('click', () => {
+  view = view.m === 11 ? { y: view.y + 1, m: 0 } : { y: view.y, m: view.m + 1 };
   render();
 });
 
