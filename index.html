@@ -962,7 +962,10 @@ async function connectFromLink() {
   const s = location.hash.match(/[#&]s=([^&]+)/);
   sync.url = s ? decodeURIComponent(s[1]) : (sync.url || DEFAULT_SERVER);
   saveSync();
-  try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+  // Из адреса ключ убираем только в установленном приложении. В Safari он должен остаться: iPhone запоминает
+  // текущий адрес, когда вы нажимаете «На экран Домой», и иконка открывается уже подключённой.
+  const installed = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+  if (installed) { try { history.replaceState(null, '', location.pathname + location.search); } catch {} }
   $('syncUrl').value = sync.url; $('syncToken').value = sync.token;
   try { await api('/inbox'); setStatus(); toast('Подключено: операции из банка будут вноситься сами', false); }
   catch (e) { setStatus('Не удалось подключиться: ' + e.message, true); }
@@ -975,6 +978,7 @@ function setStatus(text, bad) {
   s.style.color = bad ? 'var(--bad)' : '';
 }
 async function api(path, opts = {}) {
+  if (!sync.token) throw new Error('приложение не подключено: откройте личную ссылку на этом телефоне');
   const r = await fetch(sync.url.replace(/\/+$/, '') + path, { ...opts, headers: { Authorization: 'Bearer ' + sync.token, 'Content-Type': 'application/json' } });
   if (!r.ok) throw new Error(r.status === 401 ? 'неверный ключ' : 'ошибка сервера ' + r.status);
   return r.json();
