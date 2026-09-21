@@ -6,8 +6,8 @@
 <meta name="color-scheme" content="light dark">
 <title>Мои финансы</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#101216" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,125 +17,208 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
   :root {
-    --bg: #f4f5f7; --card: #fff; --text: #1c1f26; --muted: #6b7280; --line: #e5e7eb;
-    --income: #16a34a; --expense: #dc2626; --accent: #2563eb; --input: #fff;
+    --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+    --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,.10); --wash: rgba(11,11,11,.05);
+    --inc: #1baf7a; --exp: #e34948; --bal: #2a78d6;
+    --good: #006300; --bad: #d03b3b; --accent: #256abf; --track: #cde2fb;
+    --hero-a: #184f95; --hero-b: #2a78d6;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --shadow: 0 1px 2px rgba(11,11,11,.04), 0 6px 20px rgba(11,11,11,.05);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #101216; --card: #1a1d24; --text: #eceef2; --muted: #98a0ae; --line: #2a2f39;
-      --income: #4ade80; --expense: #f87171; --accent: #60a5fa; --input: #12151a;
+      --page: #0d0d0d; --surface: #1a1a19; --ink: #fff; --ink2: #c3c2b7; --muted: #898781;
+      --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,.10); --wash: rgba(255,255,255,.06);
+      --inc: #199e70; --exp: #e66767; --bal: #3987e5;
+      --good: #0ca30c; --bad: #e66767; --accent: #256abf; --track: #104281;
+      --hero-a: #0d366b; --hero-b: #1c5cab;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
+      --shadow: none;
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
   html { -webkit-text-size-adjust: 100%; }
-  body { -webkit-tap-highlight-color: transparent; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 16px;
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app {
+    max-width: 860px; margin: 0 auto; padding: 16px;
     padding-top: max(16px, env(safe-area-inset-top));
     padding-left: max(16px, env(safe-area-inset-left));
     padding-right: max(16px, env(safe-area-inset-right));
-    padding-bottom: max(16px, env(safe-area-inset-bottom)); }
-  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-  h1 { font-size: 22px; margin: 0; }
-  h2 { font-size: 15px; margin: 0 0 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
-  .balance { text-align: center; }
-  .balance .label { color: var(--muted); font-size: 14px; }
-  .balance .value { font-size: 40px; font-weight: 700; margin: 4px 0 12px; }
-  .totals { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; }
-  .totals div span { display: block; font-size: 13px; color: var(--muted); }
-  .totals b { font-size: 18px; }
-  .pos { color: var(--income); } .neg { color: var(--expense); }
-  .avg { display: grid; grid-template-columns: minmax(70px, auto) repeat(3, 1fr); gap: 1px; background: var(--line); border-radius: 10px; overflow: hidden; }
-  .avg > * { background: var(--card); padding: 10px 8px; text-align: center; font-size: 15px; min-width: 0; }
-  .avg .h { font-size: 13px; color: var(--muted); }
-  .avg .row { text-align: left; font-weight: 600; }
-  .avg b { font-weight: 700; }
-  .avgbal { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; padding: 12px; background: var(--bg); border-radius: 10px; }
-  .avgbal span { font-size: 14px; color: var(--muted); }
-  .avgbal b { font-size: 18px; white-space: nowrap; }
-  .monthnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-  .monthnav span { font-weight: 600; text-transform: capitalize; }
-  .monthnav button { width: 44px; padding: 0; font-size: 20px; cursor: pointer; }
-  .monthnav button:disabled { opacity: .35; cursor: default; }
-  .check { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; }
-  .check input { width: 22px; min-height: 22px; height: 22px; flex: none; }
-  .debtres { margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--bg); font-size: 15px; }
-  .debtres strong { font-size: 20px; }
-  .hint { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
+
+  /* header */
+  .top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .top h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -.01em; }
+  .logo { width: 32px; height: 32px; flex: none; }
+  select { font: inherit; }
+  .cur { width: auto; min-height: 36px; padding: 4px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+
+  /* cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  h2 { font-size: 13px; margin: 0 0 14px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  h2 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .hint { font-size: 12px; color: var(--muted); margin: 12px 0 0; }
+  .pos { color: var(--good); } .neg { color: var(--bad); }
+
+  /* hero */
+  .hero {
+    color: #fff; border: 0; padding: 24px 20px 20px;
+    background: radial-gradient(120% 140% at 0% 0%, var(--hero-b), var(--hero-a));
+  }
+  .hero .label { font-size: 14px; opacity: .8; }
+  .hero .value { font-size: 52px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; margin: 6px 0 16px; word-break: break-word; }
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chip { flex: 1; min-width: 130px; background: rgba(255,255,255,.14); border-radius: 14px; padding: 10px 14px; }
+  .chip span { display: block; font-size: 12px; opacity: .8; }
+  .chip b { font-size: 18px; }
+
+  /* form */
   form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   form .full { grid-column: 1 / -1; }
-  input, select, button { font: inherit; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--input); color: var(--text); width: 100%; }
-  input:not([type=radio]):not([type=checkbox]), button { -webkit-appearance: none; appearance: none; }
-  input[type=date] { text-align: left; }
-  .seg { display: flex; gap: 8px; }
-  .seg label { flex: 1; text-align: center; padding: 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
-  .seg input { display: none; }
-  .seg input:checked + span { font-weight: 700; }
-  .seg label:has(input[value=expense]:checked) { background: var(--expense); border-color: var(--expense); color: #fff; }
-  .seg label:has(input[value=income]:checked) { background: var(--income); border-color: var(--income); color: #fff; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
-  ul { list-style: none; margin: 0; padding: 0; }
-  li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
-  li:first-child { border-top: 0; }
-  li .info { flex: 1; min-width: 0; }
-  li .cat { font-weight: 600; }
-  li .meta { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  li .sum { font-weight: 700; white-space: nowrap; }
-  li button { width: auto; padding: 4px 10px; background: none; color: var(--muted); cursor: pointer; }
+  input:not([type=radio]):not([type=checkbox]), button {
+    font: inherit; color: var(--ink); width: 100%; min-height: 46px; padding: 10px 14px;
+    border-radius: 12px; border: 1px solid var(--border); background: var(--page);
+    -webkit-appearance: none; appearance: none;
+  }
+  input:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--bal); outline-offset: 1px; }
+  input::placeholder { color: var(--muted); }
+  #amount { font-size: 28px; font-weight: 700; min-height: 60px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; border-radius: 14px; background: var(--wash); }
+  .seg label { text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: 600; color: var(--ink2); }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg label:has(input:checked) { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .seg label:has(input[value=expense]:checked) { color: var(--bad); }
+  .seg label:has(input[value=income]:checked) { color: var(--good); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; cursor: pointer; }
+
+  /* month filter */
+  .monthnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 16px; }
+  .monthnav span { font-size: 18px; font-weight: 700; text-transform: capitalize; }
+  .monthnav button { width: 44px; min-height: 44px; padding: 0; font-size: 22px; cursor: pointer; background: var(--surface); }
+  .monthnav button:disabled { opacity: .35; cursor: default; }
+
+  /* tiles */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tile { background: var(--page); border-radius: 14px; padding: 12px; min-width: 0; }
+  .tile span { display: block; font-size: 12px; color: var(--muted); }
+  .tile b { display: block; font-size: 18px; margin: 2px 0; overflow-wrap: anywhere; }
+  .tile small { font-size: 11px; color: var(--muted); }
+
+  /* averages */
+  .avg { display: grid; grid-template-columns: minmax(70px, auto) repeat(3, 1fr); gap: 1px; background: var(--grid); border-radius: 12px; overflow: hidden; }
+  .avg > * { background: var(--surface); padding: 10px 6px; text-align: center; font-size: 15px; min-width: 0; }
+  .avg .h { font-size: 12px; color: var(--muted); }
+  .avg .row { text-align: left; font-weight: 600; }
+  .avg b { font-weight: 700; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 12px; padding: 12px 14px; background: var(--page); border-radius: 12px; }
+  .stat span { font-size: 14px; color: var(--muted); }
+  .stat b { font-size: 18px; white-space: nowrap; }
+
+  /* charts */
+  .legend { display: flex; gap: 16px; margin: -4px 0 8px; font-size: 13px; color: var(--ink2); }
+  .key::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; background: var(--c); }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+  .chart .empty { padding: 36px 0; }
+  .tip { position: absolute; top: 4px; z-index: 2; pointer-events: none; background: var(--surface); color: var(--ink);
+         border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.18); white-space: nowrap; }
+  .tip .tt { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .tip .tr { display: flex; align-items: center; gap: 8px; line-height: 1.6; }
+  .tip .tr i { width: 12px; height: 3px; border-radius: 2px; }
+  .tip .tr span { color: var(--ink2); }
+
+  .avgwrap { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  .avgwrap h3 { font-size: 13px; margin: 0 0 8px; color: var(--ink2); font-weight: 600; }
+  @media (min-width: 720px) { .avgwrap { grid-template-columns: 1fr 1fr; align-items: start; } }
+  .pair { display: grid; grid-template-columns: 1fr; gap: 0 16px; }
+  @media (min-width: 720px) { .pair { grid-template-columns: 1fr 1fr; } }
+  .donut { position: relative; display: flex; flex-direction: column; align-items: center; }
+  .donut svg { width: 190px; height: 190px; overflow: visible; }
+  .donut path, .donut circle.ring { cursor: default; transition: opacity .12s; }
+  .donut.hov path { opacity: .45; } .donut.hov path.on { opacity: 1; }
+  .donut .tip { top: 0; }
+  .lg { width: 100%; margin-top: 14px; display: grid; gap: 8px; }
+  .lg div { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .lg i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .lg span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink2); }
+  .lg b { white-space: nowrap; }
+  .lg em { font-style: normal; color: var(--muted); width: 38px; text-align: right; }
+
+  .picker { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pick { width: auto !important; min-height: 38px !important; padding: 4px 12px !important; border-radius: 999px !important; font-size: 14px; color: var(--ink2) !important; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .pick[aria-pressed=true] { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; font-weight: 600; }
+
+  details summary { cursor: pointer; font-weight: 600; color: var(--ink2); }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+  th { text-align: right; color: var(--muted); font-weight: 500; font-size: 12px; }
+  td, th { padding: 6px 4px; border-top: 1px solid var(--grid); }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; }
+
+  /* debt */
+  .meter { height: 10px; border-radius: 5px; background: var(--track); margin-top: 12px; overflow: hidden; }
+  .meter i { display: block; height: 100%; border-radius: 5px; background: var(--accent); }
+  .check { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--ink2); }
+  .check input { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
+  .debtres { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--page); font-size: 15px; }
+  .debtres strong { font-size: 22px; }
+  .debtres .sub { color: var(--muted); font-size: 13px; }
+
+  /* history */
+  .day { font-size: 12px; color: var(--muted); font-weight: 600; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .05em; }
+  .day:first-child { margin-top: 0; }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  .ico { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 18px; background: var(--wash); }
+  .ico.income { color: var(--good); } .ico.expense { color: var(--bad); }
+  .tx .info { flex: 1; min-width: 0; }
+  .tx .cat { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx .meta { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx .sum { font-weight: 700; white-space: nowrap; }
+  .tx button { width: 36px; min-height: 36px; padding: 0; border: 0; background: none; color: var(--muted); cursor: pointer; }
+  button.more { margin-top: 12px; cursor: pointer; color: var(--ink2); }
   .empty { color: var(--muted); text-align: center; padding: 16px 0; }
-  .cur { width: auto; }
+
+  .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 10;
+           display: flex; align-items: center; gap: 12px; background: var(--ink); color: var(--page); padding: 10px 12px 10px 16px; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+  .toast[hidden] { display: none; }
+  .toast button { width: auto; min-height: 32px; padding: 2px 12px; border: 0; background: rgba(128,128,128,.3); color: inherit; border-radius: 10px; font-weight: 600; cursor: pointer; }
+
   @media (max-width: 520px) {
-    .balance .value { font-size: 32px; }
-    .avg > * { padding: 10px 4px; font-size: 14px; }
+    .hero .value { font-size: 44px; }
+    .avg > * { padding: 10px 2px; font-size: 14px; }
+    .tiles { grid-template-columns: 1fr; }
+    .tile { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .tile b { margin: 0; }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>💰 Мои финансы</h1>
+<div class="app">
+  <header class="top">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#2563eb"/>
+      <rect x="6.5" y="15" width="5" height="10" rx="1" fill="#4ade80"/>
+      <rect x="13.5" y="7" width="5" height="18" rx="1" fill="#fff"/>
+      <rect x="20.5" y="12" width="5" height="13" rx="1" fill="#f87171"/>
+    </svg>
+    <h1>Мои финансы</h1>
     <select id="currency" class="cur" aria-label="Валюта">
       <option>₽</option><option>$</option><option>€</option><option>֏</option><option>₸</option><option>₴</option>
     </select>
   </header>
 
-  <section class="card balance">
+  <section class="card hero">
     <div class="label">Остаток</div>
     <div class="value" id="balance">0</div>
-    <div class="totals">
-      <div><span>Заработано</span><b class="pos" id="totalIncome">0</b></div>
-      <div><span>Потрачено</span><b class="neg" id="totalExpense">0</b></div>
+    <div class="chips">
+      <div class="chip"><span>Заработано всего</span><b id="totalIncome">0</b></div>
+      <div class="chip"><span>Потрачено всего</span><b id="totalExpense">0</b></div>
     </div>
-  </section>
-
-  <section class="card">
-    <h2>Средние значения за месяц</h2>
-    <div class="monthnav">
-      <button type="button" id="prevMonth" aria-label="Предыдущий месяц">‹</button>
-      <span id="monthLabel"></span>
-      <button type="button" id="nextMonth" aria-label="Следующий месяц">›</button>
-    </div>
-    <div class="avg">
-      <div class="h"></div><div class="h">в день</div><div class="h">в неделю</div><div class="h">в месяц</div>
-      <div class="row">Расход</div>
-      <b class="neg" id="expDay">0</b><b class="neg" id="expWeek">0</b><b class="neg" id="expMonth">0</b>
-      <div class="row">Заработок</div>
-      <b class="pos" id="incDay">0</b><b class="pos" id="incWeek">0</b><b class="pos" id="incMonth">0</b>
-      <div class="row">Итого</div>
-      <b id="netDay">0</b><b id="netWeek">0</b><b id="netMonth">0</b>
-    </div>
-    <div class="avgbal"><span>Средний остаток<br>(на конец дня)</span><b id="avgBalance">0</b></div>
-    <p class="hint" id="avgHint"></p>
-  </section>
-
-  <section class="card">
-    <h2>Долг</h2>
-    <input id="debt" type="text" inputmode="decimal" autocomplete="off" placeholder="Сумма долга (0 — нет долга)">
-    <label class="check"><input type="checkbox" id="debtUseBalance" checked><span>Погашать в том числе из текущего остатка</span></label>
-    <div class="avgbal"><span>Осталось погасить</span><b id="debtLeft">0</b></div>
-    <div class="debtres" id="debtResult"></div>
-    <p class="hint">Темп берётся из выбранного месяца: заработок минус расходы. Когда отдадите часть долга, уменьшите сумму в поле.</p>
   </section>
 
   <section class="card">
@@ -145,29 +228,121 @@
         <label><input type="radio" name="type" value="expense" checked><span>− Трата</span></label>
         <label><input type="radio" name="type" value="income"><span>+ Заработок</span></label>
       </div>
-      <input id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="Сумма" required>
-      <input id="date" type="date" required>
-      <input id="category" list="cats" placeholder="Категория (еда, зарплата…)" required>
-      <datalist id="cats"></datalist>
-      <input id="note" placeholder="Заметка (необязательно)">
+      <input class="full" id="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Сумма" required>
+      <div class="picker full" id="picker" role="group" aria-label="Категория"></div>
+      <input class="full" id="customCat" placeholder="Название своей категории" autocomplete="off" aria-label="Своя категория" hidden>
+      <input id="date" type="date" aria-label="Дата" required>
+      <input id="note" placeholder="Заметка (необязательно)" aria-label="Заметка">
       <button class="primary full" type="submit">Добавить</button>
     </form>
   </section>
 
+  <div class="monthnav">
+    <button type="button" id="prevMonth" aria-label="Предыдущий месяц">‹</button>
+    <span id="monthLabel"></span>
+    <button type="button" id="nextMonth" aria-label="Следующий месяц">›</button>
+  </div>
+
+  <section class="card">
+    <h2>Итоги месяца</h2>
+    <div class="tiles">
+      <div class="tile"><span>Заработано</span><b id="kInc">0</b><small id="kIncPrev"></small></div>
+      <div class="tile"><span>Потрачено</span><b id="kExp">0</b><small id="kExpPrev"></small></div>
+      <div class="tile"><span>Итог</span><b id="kNet">0</b><small id="kNetPrev"></small></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Динамика остатка</h2>
+    <div class="chart" id="chartBal"><div class="tip" hidden></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Заработок и расходы по дням</h2>
+    <div class="legend">
+      <span class="key" style="--c:var(--inc)">Заработок (вверх)</span>
+      <span class="key" style="--c:var(--exp)">Расход (вниз)</span>
+    </div>
+    <div class="chart" id="chartDays"><div class="tip" hidden></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Средние значения</h2>
+    <div class="avgwrap">
+      <div>
+        <div class="avg">
+          <div class="h"></div><div class="h">в день</div><div class="h">в неделю</div><div class="h">в месяц</div>
+          <div class="row">Расход</div>
+          <b class="neg" id="expDay">0</b><b class="neg" id="expWeek">0</b><b class="neg" id="expMonth">0</b>
+          <div class="row">Заработок</div>
+          <b class="pos" id="incDay">0</b><b class="pos" id="incWeek">0</b><b class="pos" id="incMonth">0</b>
+          <div class="row">Итого</div>
+          <b id="netDay">0</b><b id="netWeek">0</b><b id="netMonth">0</b>
+        </div>
+        <div class="stat"><span>Средний остаток<br>(на конец дня)</span><b id="avgBalance">0</b></div>
+        <p class="hint" id="avgHint"></p>
+      </div>
+      <div>
+        <h3>По месяцам (последние 6)</h3>
+        <div class="legend">
+          <span class="key" style="--c:var(--inc)">Заработок</span>
+          <span class="key" style="--c:var(--exp)">Расход</span>
+        </div>
+        <div class="chart" id="chartMonths"><div class="tip" hidden></div></div>
+        <p class="hint" id="monthsHint"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Долг</h2>
+    <input id="debt" type="text" inputmode="decimal" autocomplete="off" placeholder="Сумма долга (0 — нет долга)" aria-label="Сумма долга">
+    <label class="check"><input type="checkbox" id="debtUseBalance" checked><span>Погашать в том числе из текущего остатка</span></label>
+    <div class="stat"><span>Осталось погасить</span><b id="debtLeft">0</b></div>
+    <div class="meter" id="debtMeter" hidden><i></i></div>
+    <div class="debtres" id="debtResult"></div>
+    <p class="hint">Темп берётся из выбранного месяца: заработок минус расходы. Когда отдадите часть долга, уменьшите сумму в поле.</p>
+  </section>
+
+  <div class="pair">
+    <section class="card">
+      <h2>Расходы по категориям</h2>
+      <div class="donut" id="donutExp"><div class="tip" hidden></div></div>
+    </section>
+    <section class="card">
+      <h2>Заработок по источникам</h2>
+      <div class="donut" id="donutInc"><div class="tip" hidden></div></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <details>
+      <summary>Таблица по дням выбранного месяца</summary>
+      <table id="dayTable"></table>
+    </details>
+  </section>
+
   <section class="card">
     <h2>История</h2>
-    <ul id="list"></ul>
+    <div id="list"></div>
+    <button type="button" class="more" id="more" hidden>Показать ещё</button>
   </section>
 </div>
+
+<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="undo">Отменить</button></div>
 
 <script>
 const KEY = 'budget.v1', CUR_KEY = 'budget.currency', DEBT_KEY = 'budget.debt';
 const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
 let items = [];
 let debt = { amount: 0, useBalance: true };
 const now = new Date();
-let view = { y: now.getFullYear(), m: now.getMonth() };   // просматриваемый месяц
+let view = { y: now.getFullYear(), m: now.getMonth() };   // выбранный месяц
+let histLimit = 30;
+let lastData = null;
 
+/* ── хранилище ── */
 function load() {
   try { items = JSON.parse(localStorage.getItem(KEY)) || []; } catch { items = []; }
   try { $('currency').value = localStorage.getItem(CUR_KEY) || '₽'; } catch {}
@@ -175,167 +350,464 @@ function load() {
   $('debt').value = debt.amount ? String(debt.amount).replace('.', ',') : '';
   $('debtUseBalance').checked = !!debt.useBalance;
 }
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {}
-}
-function saveDebt() {
-  try { localStorage.setItem(DEBT_KEY, JSON.stringify(debt)); } catch {}
-}
-const parseAmount = s => parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(items)); } catch {} };
+const saveDebt = () => { try { localStorage.setItem(DEBT_KEY, JSON.stringify(debt)); } catch {} };
 
-const today = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
+/* ── утилиты ── */
+const pad = n => String(n).padStart(2, '0');
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
 const dayNum = s => { const [y, m, d] = s.split('-').map(Number); return Date.UTC(y, m - 1, d) / 864e5; };
-const fmt = n => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ' + $('currency').value;
-const fmt0 = n => n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) + ' ' + $('currency').value;
-const esc = s => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const cur = () => $('currency').value;
+const fmt = n => n.toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' ' + cur();
+const fmt0 = n => n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) + ' ' + cur();
+const compact = new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 });
+const signed = (n, f = fmt) => (n > 0 ? '+' : n < 0 ? '−' : '') + f(Math.abs(n));
+const parseAmount = s => parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
+const sum = a => a.reduce((s, x) => s + x, 0);
+function h(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => e.append(c));
+  return e;
+}
 
+/* ── данные выбранного месяца ── */
+function monthData() {
+  const first = Date.UTC(view.y, view.m, 1) / 864e5;
+  const dim = new Date(view.y, view.m + 1, 0).getDate();
+  const last = first + dim - 1;
+  const nums = items.map(i => dayNum(i.date));
+  const end = Math.min(last, Math.max(dayNum(today()), ...nums));
+  const start = nums.length ? Math.max(first, Math.min(...nums)) : first;
+  const inc = Array(dim).fill(0), exp = Array(dim).fill(0), cats = {}, icats = {};
+  let before = 0, count = 0;
+  items.forEach((it, k) => {
+    const n = nums[k];
+    if (n < first) before += it.type === 'income' ? it.amount : -it.amount;
+    else if (n <= last) {
+      count++;
+      (it.type === 'income' ? inc : exp)[n - first] += it.amount;
+      const bucket = it.type === 'income' ? icats : cats;
+      bucket[it.category] = (bucket[it.category] || 0) + it.amount;
+    }
+  });
+  const bal = []; let run = before;
+  for (let i = 0; i < dim; i++) { run += inc[i] - exp[i]; bal.push(run); }
+  const lastIdx = end - first, startIdx = start - first;
+  const days = Math.max(0, lastIdx - startIdx + 1);
+  const avgBalance = days ? sum(bal.slice(startIdx, lastIdx + 1)) / days : 0;
+  return { first, dim, inc, exp, bal, cats, icats, count, lastIdx, startIdx, days, avgBalance, mInc: sum(inc), mExp: sum(exp) };
+}
+function prevMonthTotals() {
+  const py = view.m === 0 ? view.y - 1 : view.y, pm = view.m === 0 ? 11 : view.m - 1;
+  const a = Date.UTC(py, pm, 1) / 864e5, b = Date.UTC(py, pm + 1, 0) / 864e5;
+  let inc = 0, exp = 0, n = 0;
+  items.forEach(i => { const d = dayNum(i.date); if (d >= a && d <= b) { n++; if (i.type === 'income') inc += i.amount; else exp += i.amount; } });
+  return { inc, exp, n };
+}
+
+/* ── SVG-помощники ── */
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'fill' || k === 'stroke') e.style[k] = v; else e.setAttribute(k, v);
+  }
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function niceTicks(min, max, count = 4) {
+  if (max - min < 1e-9) max = min + 1;
+  const raw = (max - min) / count, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  const step = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, ticks = [];
+  for (let v = lo; v <= hi + step / 2; v += step) ticks.push(+v.toFixed(10));
+  return { ticks, lo, hi };
+}
+function colPath(x, w, y0, y1, r) {              // столбик от базовой линии y0 до конца y1, скруглён только со стороны данных
+  const hgt = Math.abs(y1 - y0); if (hgt < 0.5) return '';
+  const rr = Math.min(r, hgt, w / 2), s = y1 < y0 ? 1 : -1;
+  return `M${x},${y0}V${y1 + s * rr}Q${x},${y1} ${x + rr},${y1}H${x + w - rr}Q${x + w},${y1} ${x + w},${y1 + s * rr}V${y0}Z`;
+}
+function dayTitle(d, i) {
+  return new Date(view.y, view.m, i + 1).toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' });
+}
+function showTip(box, xpx, title, rows) {
+  const tip = box.querySelector('.tip');
+  tip.replaceChildren(h('div', { class: 'tt', text: title }),
+    ...rows.map(([color, label, value]) => h('div', { class: 'tr' },
+      h('i', { style: `background:${color}` }), h('b', { text: value }), h('span', { text: label }))));
+  tip.hidden = false;
+  const w = tip.offsetWidth;
+  let left = xpx + 14; if (left + w > box.clientWidth) left = xpx - w - 14;
+  tip.style.left = Math.max(0, left) + 'px';
+}
+const hideTip = box => { box.querySelector('.tip').hidden = true; };
+function setup(box, H) {
+  box.querySelectorAll('svg, .empty').forEach(n => n.remove());
+  const W = Math.max(260, Math.round(box.clientWidth));
+  const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img' });
+  box.prepend(svg);
+  return { svg, W };
+}
+function axes(svg, W, ml, mr, mt, ph, t, y, dim, bw, ml0) {
+  t.ticks.forEach(v => {
+    el('line', { x1: ml, x2: W - mr, y1: y(v), y2: y(v), stroke: v === 0 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': 1 }, svg);
+    const tx = el('text', { x: ml - 8, y: y(v) + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, svg);
+    tx.textContent = compact.format(v);
+  });
+  for (let d = 1; d <= dim; d++) {
+    if (d !== 1 && d % 5 !== 0) continue;
+    const tx = el('text', { x: ml + (d - 0.5) * bw, y: mt + ph + 17, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--muted)' }, svg);
+    tx.textContent = d;
+  }
+}
+const emptyMsg = (box, text) => { box.querySelectorAll('svg, .empty').forEach(n => n.remove()); box.prepend(h('div', { class: 'empty', text })); };
+const dayIndex = (e, svg, W, ml, bw, max) => {
+  const r = svg.getBoundingClientRect();
+  return Math.max(0, Math.min(max, Math.floor(((e.clientX - r.left) * (W / r.width) - ml) / bw)));
+};
+
+/* ── график 1: остаток по дням ── */
+function drawBalance(D) {
+  const box = $('chartBal');
+  if (!D.count && D.bal.every(v => v === 0)) return emptyMsg(box, 'Нет операций за этот месяц');
+  const H = 200, ml = 46, mr = 12, mt = 16, mb = 24;
+  const { svg, W } = setup(box, H);
+  const pw = W - ml - mr, ph = H - mt - mb, bw = pw / D.dim;
+  const pts = D.bal.slice(0, D.lastIdx + 1);
+  const t = niceTicks(Math.min(0, ...pts), Math.max(0, ...pts), 3);
+  const y = v => mt + ph * (1 - (v - t.lo) / (t.hi - t.lo));
+  const x = i => ml + (i + 0.5) * bw;
+  axes(svg, W, ml, mr, mt, ph, t, y, D.dim, bw);
+  const line = pts.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join('');
+  el('path', { d: `${line}L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z`, fill: 'var(--bal)', 'fill-opacity': .1 }, svg);
+  el('path', { d: line, fill: 'none', stroke: 'var(--bal)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, svg);
+  const ex = x(pts.length - 1), ey = y(pts[pts.length - 1]);
+  el('circle', { cx: ex, cy: ey, r: 5, fill: 'var(--bal)', stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+  const lab = el('text', { x: Math.min(ex, W - mr), y: ey - 12, 'text-anchor': ex > W - 70 ? 'end' : 'middle', 'font-size': 12, 'font-weight': 600, fill: 'var(--ink)' }, svg);
+  lab.textContent = fmt0(pts[pts.length - 1]);
+  const cross = el('line', { y1: mt, y2: mt + ph, stroke: 'var(--axis)', 'stroke-width': 1, visibility: 'hidden' }, svg);
+  const dot = el('circle', { r: 5, fill: 'var(--bal)', stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' }, svg);
+  const move = e => {
+    const i = dayIndex(e, svg, W, ml, bw, D.lastIdx);
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+    dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(D.bal[i])); dot.setAttribute('visibility', 'visible');
+    showTip(box, x(i), dayTitle(D, i), [['var(--bal)', 'остаток', fmt(D.bal[i])]]);
+  };
+  const leave = () => { cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); hideTip(box); };
+  el('rect', { x: ml, y: mt, width: pw, height: ph, fill: 'transparent' }, svg);
+  svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move); svg.addEventListener('pointerleave', leave);
+  svg.setAttribute('aria-label', `Остаток на конец дня, ${$('monthLabel').textContent}`);
+}
+
+/* ── график 2: заработок вверх, расход вниз ── */
+function drawDays(D) {
+  const box = $('chartDays');
+  if (!D.count) return emptyMsg(box, 'Нет операций за этот месяц');
+  const H = 220, ml = 46, mr = 12, mt = 12, mb = 24;
+  const { svg, W } = setup(box, H);
+  const pw = W - ml - mr, ph = H - mt - mb, bw = pw / D.dim;
+  const t = niceTicks(-Math.max(0, ...D.exp), Math.max(0, ...D.inc), 4);
+  const y = v => mt + ph * (1 - (v - t.lo) / (t.hi - t.lo));
+  axes(svg, W, ml, mr, mt, ph, t, y, D.dim, bw);
+  const bwid = Math.min(24, bw * 0.62), y0 = y(0);
+  const hover = el('rect', { y: mt, height: ph, width: bw, fill: 'var(--ink)', 'fill-opacity': .06, visibility: 'hidden' }, svg);
+  for (let i = 0; i < D.dim; i++) {
+    const cx = ml + (i + 0.5) * bw - bwid / 2;
+    if (D.inc[i]) el('path', { d: colPath(cx, bwid, y0, y(D.inc[i]), 4), fill: 'var(--inc)' }, svg);
+    if (D.exp[i]) el('path', { d: colPath(cx, bwid, y0, y(-D.exp[i]), 4), fill: 'var(--exp)' }, svg);
+  }
+  el('rect', { x: ml, y: mt, width: pw, height: ph, fill: 'transparent' }, svg);
+  const move = e => {
+    const i = dayIndex(e, svg, W, ml, bw, D.dim - 1);
+    hover.setAttribute('x', ml + i * bw); hover.setAttribute('visibility', 'visible');
+    const net = D.inc[i] - D.exp[i];
+    showTip(box, ml + (i + 0.5) * bw, dayTitle(D, i), [
+      ['var(--inc)', 'заработок', fmt(D.inc[i])],
+      ['var(--exp)', 'расход', fmt(D.exp[i])],
+      ['var(--axis)', 'итого', signed(net)],
+    ]);
+  };
+  svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move);
+  svg.addEventListener('pointerleave', () => { hover.setAttribute('visibility', 'hidden'); hideTip(box); });
+  svg.setAttribute('aria-label', `Заработок и расходы по дням, ${$('monthLabel').textContent}`);
+}
+/* ── график 3: по месяцам (последние 6), рядом со средними ── */
+function drawMonths() {
+  const box = $('chartMonths');
+  const list = [];
+  for (let k = 5; k >= 0; k--) {
+    const d = new Date(view.y, view.m - k, 1);
+    list.push({ key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}`, d, inc: 0, exp: 0 });
+  }
+  items.forEach(i => { const m = list.find(x => x.key === i.date.slice(0, 7)); if (m) m[i.type === 'income' ? 'inc' : 'exp'] += i.amount; });
+  const active = list.filter(m => m.inc || m.exp);
+  const hint = $('monthsHint');
+  if (!active.length) { hint.textContent = ''; return emptyMsg(box, 'Пока нет данных'); }
+  hint.textContent = `В среднем за месяц (по ${active.length} мес. с операциями): заработок ${fmt0(sum(active.map(m => m.inc)) / active.length)}, расход ${fmt0(sum(active.map(m => m.exp)) / active.length)}.`;
+
+  const H = 210, ml = 42, mr = 6, mt = 12, mb = 24;
+  const { svg, W } = setup(box, H);
+  const pw = W - ml - mr, ph = H - mt - mb, bw = pw / list.length;
+  const t = niceTicks(0, Math.max(...list.map(m => Math.max(m.inc, m.exp))), 4);
+  const y = v => mt + ph * (1 - (v - t.lo) / (t.hi - t.lo));
+  t.ticks.forEach(v => {
+    el('line', { x1: ml, x2: W - mr, y1: y(v), y2: y(v), stroke: v === 0 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': 1 }, svg);
+    el('text', { x: ml - 6, y: y(v) + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, svg).textContent = compact.format(v);
+  });
+  const hover = el('rect', { y: mt, height: ph, width: bw, fill: 'var(--ink)', 'fill-opacity': .06, visibility: 'hidden' }, svg);
+  const barW = Math.min(24, (bw - 10) / 2 - 1);
+  list.forEach((m, i) => {
+    const cx = ml + (i + 0.5) * bw;
+    if (m.inc) el('path', { d: colPath(cx - barW - 1, barW, y(0), y(m.inc), 4), fill: 'var(--inc)' }, svg);
+    if (m.exp) el('path', { d: colPath(cx + 1, barW, y(0), y(m.exp), 4), fill: 'var(--exp)' }, svg);
+    el('text', { x: cx, y: mt + ph + 17, 'text-anchor': 'middle', 'font-size': 11, fill: i === list.length - 1 ? 'var(--ink)' : 'var(--muted)', 'font-weight': i === list.length - 1 ? 600 : 400 }, svg)
+      .textContent = m.d.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
+  });
+  el('rect', { x: ml, y: mt, width: pw, height: ph, fill: 'transparent' }, svg);
+  const move = e => {
+    const i = dayIndex(e, svg, W, ml, bw, list.length - 1), m = list[i];
+    hover.setAttribute('x', ml + i * bw); hover.setAttribute('visibility', 'visible');
+    showTip(box, ml + (i + 0.5) * bw, m.d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/\s*г\.$/, ''), [
+      ['var(--inc)', 'заработок', fmt(m.inc)], ['var(--exp)', 'расход', fmt(m.exp)], ['var(--axis)', 'итого', signed(m.inc - m.exp)]]);
+  };
+  svg.addEventListener('pointermove', move); svg.addEventListener('pointerdown', move);
+  svg.addEventListener('pointerleave', () => { hover.setAttribute('visibility', 'hidden'); hideTip(box); });
+  svg.setAttribute('aria-label', 'Заработок и расходы по месяцам');
+}
+const drawCharts = D => { drawBalance(D); drawDays(D); drawMonths(); drawDonuts(D); };
+
+/* ── кольцевые графики по категориям ── */
+// Цвет закреплён за категорией (по порядку первого использования), а не за местом в рейтинге —
+// поэтому при смене месяца категория не меняет цвет. Категории сверх 8 уходят в серое «Прочее».
+function colorMap(type) {
+  const map = new Map();
+  [...items].filter(i => i.type === type).sort((a, b) => a.id - b.id).forEach(i => { if (!map.has(i.category)) map.set(i.category, map.size); });
+  return map;
+}
+function drawDonut(box, data, type, emptyText) {
+  box.querySelectorAll('svg, .lg, .empty').forEach(n => n.remove());
+  const total = sum(Object.values(data));
+  if (!total) return void box.prepend(h('div', { class: 'empty', text: emptyText }));
+  const cm = colorMap(type);
+  let slices = Object.entries(data).filter(([n]) => cm.get(n) < 8).map(([n, v]) => ({ name: n, v, color: `var(--s${cm.get(n) + 1})` }));
+  const rest = total - sum(slices.map(s => s.v));
+  slices.sort((a, b) => b.v - a.v);
+  if (rest > 0) slices.push({ name: 'Прочее', v: rest, color: 'var(--axis)' });
+
+  const S = 190, c = S / 2, R = 88, r = 56, mid = (R + r) / 2;
+  const svg = el('svg', { viewBox: `0 0 ${S} ${S}`, role: 'img', 'aria-label': type === 'expense' ? 'Расходы по категориям' : 'Заработок по источникам' });
+  const pt = (rad, a) => [c + rad * Math.cos(a), c + rad * Math.sin(a)];
+  let a0 = -Math.PI / 2;
+  const nodes = slices.map(s => {
+    let node;
+    if (slices.length === 1) node = el('circle', { class: 'ring', cx: c, cy: c, r: mid, fill: 'none', stroke: s.color, 'stroke-width': R - r }, svg);
+    else {
+      const a1 = a0 + s.v / total * Math.PI * 2, big = a1 - a0 > Math.PI ? 1 : 0;
+      const [x0, y0] = pt(R, a0), [x1, y1] = pt(R, a1), [x2, y2] = pt(r, a1), [x3, y3] = pt(r, a0);
+      node = el('path', { d: `M${x0},${y0}A${R},${R} 0 ${big} 1 ${x1},${y1}L${x2},${y2}A${r},${r} 0 ${big} 0 ${x3},${y3}Z`, fill: s.color, stroke: 'var(--surface)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+      a0 = a1;
+    }
+    return node;
+  });
+  el('text', { x: c, y: c - 2, 'text-anchor': 'middle', 'font-size': 20, 'font-weight': 700, fill: 'var(--ink)' }, svg).textContent = compact.format(total);
+  el('text', { x: c, y: c + 16, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--muted)' }, svg).textContent = 'за месяц';
+  const on = i => { box.classList.toggle('hov', i >= 0); nodes.forEach((n, k) => n.classList.toggle('on', k === i)); };
+  nodes.forEach((n, i) => {
+    n.addEventListener('pointerenter', () => on(i));
+    n.addEventListener('pointermove', e => {
+      const bx = box.getBoundingClientRect();
+      showTip(box, e.clientX - bx.left, slices[i].name, [[slices[i].color, `${Math.round(slices[i].v / total * 100)}%`, fmt(slices[i].v)]]);
+      box.querySelector('.tip').style.top = (e.clientY - bx.top - 60) + 'px';
+    });
+    n.addEventListener('pointerleave', () => { on(-1); hideTip(box); });
+  });
+  box.prepend(svg);
+  box.append(h('div', { class: 'lg' }, slices.map(s => h('div', {},
+    h('i', { style: `background:${s.color}` }), h('span', { text: s.name }), h('b', { text: fmt0(s.v) }), h('em', { text: Math.round(s.v / total * 100) + '%' })))));
+}
+function drawDonuts(D) {
+  drawDonut($('donutExp'), D.cats, 'expense', 'Расходов за этот месяц пока нет');
+  drawDonut($('donutInc'), D.icats, 'income', 'Заработка за этот месяц пока нет');
+}
+
+/* ── таблица по дням (то же, что на графиках) ── */
+function drawTable(D) {
+  const rows = [];
+  for (let i = D.lastIdx; i >= 0; i--) if (D.inc[i] || D.exp[i]) rows.push(h('tr', {},
+    h('td', { text: dayTitle(D, i) }), h('td', { text: fmt(D.inc[i]) }), h('td', { text: fmt(D.exp[i]) }), h('td', { text: fmt(D.bal[i]) })));
+  $('dayTable').replaceChildren(
+    h('thead', {}, h('tr', {}, h('th', { text: 'День' }), h('th', { text: 'Заработок' }), h('th', { text: 'Расход' }), h('th', { text: 'Остаток' }))),
+    h('tbody', {}, rows.length ? rows : h('tr', {}, h('td', { colspan: 4, text: 'Нет операций' }))));
+}
+
+/* ── история ── */
+function drawHistory() {
+  const sorted = [...items].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const shown = sorted.slice(0, histLimit);
+  const t = today(), y = new Date(); y.setDate(y.getDate() - 1);
+  const yest = `${y.getFullYear()}-${pad(y.getMonth() + 1)}-${pad(y.getDate())}`;
+  const label = d => d === t ? 'Сегодня' : d === yest ? 'Вчера'
+    : new Date(dayNum(d) * 864e5 + new Date().getTimezoneOffset() * 6e4).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: d.slice(0, 4) === String(now.getFullYear()) ? undefined : 'numeric' });
+  const out = []; let prev = '';
+  shown.forEach(i => {
+    if (i.date !== prev) { out.push(h('div', { class: 'day', text: label(i.date) })); prev = i.date; }
+    out.push(h('div', { class: 'tx' },
+      h('div', { class: 'ico', text: catIcon(i.type, i.category) }),
+      h('div', { class: 'info' }, h('div', { class: 'cat', text: i.category }), i.note ? h('div', { class: 'meta', text: i.note }) : ''),
+      h('div', { class: 'sum ' + (i.type === 'income' ? 'pos' : 'neg'), text: (i.type === 'income' ? '+' : '−') + fmt(i.amount) }),
+      h('button', { type: 'button', 'aria-label': 'Удалить', title: 'Удалить', text: '✕', onclick: () => remove(i.id) })));
+  });
+  $('list').replaceChildren(...(out.length ? out : [h('div', { class: 'empty', text: 'Пока нет операций' })]));
+  $('more').hidden = sorted.length <= histLimit;
+}
+
+/* ── категории на выбор ── */
+const CATS = {
+  expense: { 'Продукты': '🛒', 'Кафе и рестораны': '🍽️', 'Транспорт': '🚌', 'Жильё и коммуналка': '🏠', 'Связь и интернет': '📱',
+             'Здоровье': '💊', 'Одежда': '👕', 'Развлечения': '🎬', 'Образование': '🎓', 'Подарки': '🎁', 'Питомцы': '🐾',
+             'Долги и кредиты': '💳', 'Прочее': '📦' },
+  income:  { 'Зарплата': '💼', 'Подработка': '🛠️', 'Подарок': '🎁', 'Проценты и инвестиции': '📈', 'Возврат': '🔁', 'Другое': '💵' },
+};
+const catIcon = (type, name) => CATS[type][name] || '🏷️';
+const curType = () => document.querySelector('input[name=type]:checked').value;
+const picked = { expense: 'Продукты', income: 'Зарплата' };   // выбранная категория для каждого типа
+let customMode = false;
+
+function drawPicker() {
+  const type = curType();
+  const own = [...new Set(items.filter(i => i.type === type).map(i => i.category))].filter(c => !(c in CATS[type]));
+  const names = [...Object.keys(CATS[type]), ...own];
+  const chip = (label, icon, active, onclick) => h('button', { type: 'button', class: 'pick', 'aria-pressed': String(active), onclick }, h('span', { text: icon }), label);
+  $('picker').replaceChildren(
+    ...names.map(n => chip(n, catIcon(type, n), !customMode && picked[type] === n, () => { customMode = false; picked[type] = n; drawPicker(); })),
+    chip('Своя', '＋', customMode, () => { customMode = true; drawPicker(); $('customCat').focus(); }));
+  $('customCat').hidden = !customMode;
+}
+function chosenCategory() {
+  return customMode ? $('customCat').value.trim() : picked[curType()];
+}
+
+/* ── главный рендер ── */
 function render() {
-  const income = items.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
-  const expenses = items.filter(i => i.type === 'expense');
-  const expense = expenses.reduce((s, i) => s + i.amount, 0);
+  const income = sum(items.filter(i => i.type === 'income').map(i => i.amount));
+  const expense = sum(items.filter(i => i.type === 'expense').map(i => i.amount));
   const balance = income - expense;
-
   $('balance').textContent = fmt(balance);
-  $('balance').className = 'value ' + (balance < 0 ? 'neg' : 'pos');
   $('totalIncome').textContent = fmt(income);
   $('totalExpense').textContent = fmt(expense);
 
-  // ── Средние значения за выбранный месяц ──
-  const monthFirst = Date.UTC(view.y, view.m, 1) / 864e5;
-  const dim = new Date(view.y, view.m + 1, 0).getDate();
-  const monthLast = monthFirst + dim - 1;
-  const nums = items.map(i => dayNum(i.date));
+  const D = lastData = monthData(), prev = prevMonthTotals();
   const isCurrent = view.y === now.getFullYear() && view.m === now.getMonth();
-
-  // Период: с 1-го числа (или с первой операции) до конца месяца / до сегодня
-  let start = nums.length ? Math.max(monthFirst, Math.min(...nums)) : monthFirst;
-  const end = Math.min(monthLast, Math.max(dayNum(today()), ...nums));
-  const days = Math.max(0, end - start + 1);
-
-  const monthItems = items.filter(i => { const n = dayNum(i.date); return n >= monthFirst && n <= monthLast; });
-  const mInc = monthItems.filter(i => i.type === 'income').reduce((s, i) => s + i.amount, 0);
-  const mExp = monthItems.filter(i => i.type === 'expense').reduce((s, i) => s + i.amount, 0);
-
-  // Остаток на конец каждого дня периода (с учётом всего, что было раньше) → среднее по дням
-  let avgBalance = 0;
-  if (days > 0) {
-    const net = new Array(days).fill(0);
-    let running = 0;
-    items.forEach(i => {
-      const delta = i.type === 'income' ? i.amount : -i.amount, n = dayNum(i.date);
-      if (n < start) running += delta; else if (n <= end) net[n - start] += delta;
-    });
-    let sum = 0;
-    net.forEach(d => { running += d; sum += running; });
-    avgBalance = sum / days;
-  }
-
-  const perDay = { exp: days ? mExp / days : 0, inc: days ? mInc / days : 0 };
-  perDay.net = perDay.inc - perDay.exp;
-  for (const k of ['exp', 'inc', 'net']) {
-    $(k + 'Day').textContent = fmt0(perDay[k]);
-    $(k + 'Week').textContent = fmt0(perDay[k] * 7);
-    $(k + 'Month').textContent = fmt0(perDay[k] * dim);
-  }
-  for (const id of ['netDay', 'netWeek', 'netMonth']) $(id).className = perDay.net < 0 ? 'neg' : 'pos';
-  $('avgBalance').textContent = fmt(avgBalance);
-  $('avgBalance').className = avgBalance < 0 ? 'neg' : '';
-
   $('monthLabel').textContent = new Date(view.y, view.m, 1).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }).replace(/\s*г\.$/, '');
   $('nextMonth').disabled = isCurrent;
-  $('avgHint').textContent = days
-    ? `Период: ${days} дн. Неделя — среднее за день ×7, месяц — ×${dim}${isCurrent ? ' (прогноз до конца месяца)' : ''}. Средний остаток — среднее из остатков на конец каждого дня.`
-    : 'В этом месяце пока нет данных.';
 
-  // ── Долг: за сколько дней погасится при темпе выбранного месяца ──
+  // итоги месяца
+  const mNet = D.mInc - D.mExp;
+  $('kInc').textContent = fmt0(D.mInc); $('kExp').textContent = fmt0(D.mExp);
+  $('kNet').textContent = signed(mNet, fmt0); $('kNet').className = mNet < 0 ? 'neg' : 'pos';
+  $('kIncPrev').textContent = prev.n ? `прошлый: ${fmt0(prev.inc)}` : '';
+  $('kExpPrev').textContent = prev.n ? `прошлый: ${fmt0(prev.exp)}` : '';
+  $('kNetPrev').textContent = prev.n ? `прошлый: ${signed(prev.inc - prev.exp, fmt0)}` : '';
+
+  // средние значения
+  const per = { exp: D.days ? D.mExp / D.days : 0, inc: D.days ? D.mInc / D.days : 0 };
+  per.net = per.inc - per.exp;
+  for (const k of ['exp', 'inc', 'net']) {
+    $(k + 'Day').textContent = fmt0(per[k]);
+    $(k + 'Week').textContent = fmt0(per[k] * 7);
+    $(k + 'Month').textContent = fmt0(per[k] * D.dim);
+  }
+  for (const id of ['netDay', 'netWeek', 'netMonth']) $(id).className = per.net < 0 ? 'neg' : 'pos';
+  $('avgBalance').textContent = fmt(D.avgBalance);
+  $('avgBalance').className = D.avgBalance < 0 ? 'neg' : '';
+  $('avgHint').textContent = D.count
+    ? `Период: ${D.days} дн. Неделя — среднее за день ×7, месяц — ×${D.dim}${isCurrent ? ' (прогноз до конца месяца)' : ''}. Средний остаток — среднее из остатков на конец каждого дня.`
+    : 'В этом месяце пока нет операций.';
+
+  drawCharts(D); drawTable(D); drawHistory(); drawPicker();
+  renderDebt(balance, per, D);
+}
+
+function renderDebt(balance, per, D) {
   const left = debt.amount - (debt.useBalance ? balance : 0);
   $('debtLeft').textContent = fmt(Math.max(0, left));
-  let msg;
-  if (!(debt.amount > 0)) msg = 'Введите сумму долга.';
-  else if (left <= 0) msg = '✅ Долг уже покрыт текущим остатком.';
-  else if (!days) msg = 'Нет данных за выбранный месяц, чтобы посчитать темп.';
-  else if (perDay.net <= 0) msg = '⚠️ При таком темпе долг не погасить: расходы за месяц не меньше заработка.';
-  else {
-    const need = Math.ceil(left / perDay.net);
-    if (need > 36500) msg = 'Больше 100 лет — темп слишком низкий.';
-    else {
-      const d = new Date(); d.setDate(d.getDate() + need);
-      msg = `Останется <strong>${need.toLocaleString('ru-RU')} дн.</strong> (≈ ${(need / 30.44).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} мес.), примерно до ${d.toLocaleDateString('ru-RU')}.<br><span style="color:var(--muted)">Чистый темп: ${fmt0(perDay.net)} в день.</span>`;
-    }
-  }
-  $('debtResult').innerHTML = msg;
-
-  const cats = [...new Set(items.map(i => i.category))];
-  $('cats').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
-
-  const sorted = [...items].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
-  $('list').innerHTML = sorted.length ? sorted.map(i => `
-    <li>
-      <div class="info">
-        <div class="cat">${esc(i.category)}</div>
-        <div class="meta">${i.date.split('-').reverse().join('.')}${i.note ? ' · ' + esc(i.note) : ''}</div>
-      </div>
-      <div class="sum ${i.type === 'income' ? 'pos' : 'neg'}">${i.type === 'income' ? '+' : '−'}${fmt(i.amount)}</div>
-      <button data-del="${i.id}" title="Удалить" aria-label="Удалить">✕</button>
-    </li>`).join('') : '<div class="empty">Пока нет операций</div>';
+  const meter = $('debtMeter');
+  meter.hidden = !(debt.amount > 0);
+  if (!meter.hidden) meter.firstElementChild.style.width = Math.max(0, Math.min(100, (debt.amount - Math.max(0, left)) / debt.amount * 100)) + '%';
+  const box = $('debtResult');
+  const say = (...n) => box.replaceChildren(...n);
+  if (!(debt.amount > 0)) return say('Введите сумму долга.');
+  if (left <= 0) return say('✅ Долг уже покрыт текущим остатком.');
+  if (!D.count) return say('Нет операций за выбранный месяц, чтобы посчитать темп.');
+  if (per.net <= 0) return say('⚠️ При таком темпе долг не погасить: расходы за месяц не меньше заработка.');
+  const need = Math.ceil(left / per.net);
+  if (need > 36500) return say('Больше 100 лет — темп слишком низкий.');
+  const d = new Date(); d.setDate(d.getDate() + need);
+  say(h('div', {}, 'Останется ', h('strong', { text: `${need.toLocaleString('ru-RU')} дн.` }),
+      ` (≈ ${(need / 30.44).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} мес.), примерно до ${d.toLocaleDateString('ru-RU')}.`),
+    h('div', { class: 'sub', text: `Чистый темп: ${fmt0(per.net)} в день.` }));
 }
+
+/* ── действия ── */
+let undoItem = null, toastTimer;
+function toast(text, canUndo) {
+  $('toastText').textContent = text; $('undo').hidden = !canUndo; $('toast').hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; undoItem = null; }, 5000);
+}
+function remove(id) {
+  const i = items.findIndex(x => x.id === id); if (i < 0) return;
+  undoItem = items.splice(i, 1)[0];
+  save(); render(); toast('Операция удалена', true);
+}
+$('undo').addEventListener('click', () => {
+  if (undoItem) { items.push(undoItem); undoItem = null; save(); render(); }
+  $('toast').hidden = true;
+});
 
 $('form').addEventListener('submit', e => {
   e.preventDefault();
   const amount = parseAmount($('amount').value);
-  if (!(amount > 0)) return;
-  items.push({
-    id: Date.now(),
-    type: document.querySelector('input[name=type]:checked').value,
-    amount,
-    date: $('date').value,
-    category: $('category').value.trim(),
-    note: $('note').value.trim(),
-  });
+  if (!(amount > 0)) { $('amount').focus(); return; }
+  const category = chosenCategory();
+  if (!category) { $('customCat').focus(); return; }
+  const type = curType();
+  items.push({ id: Date.now(), type, amount, date: $('date').value, category, note: $('note').value.trim() });
   save();
-  $('amount').value = ''; $('note').value = ''; $('category').value = '';
+  picked[type] = category; customMode = false; $('customCat').value = '';
+  $('amount').value = ''; $('note').value = '';
   $('amount').focus();
   render();
+  toast('Добавлено', false);
 });
+document.querySelectorAll('input[name=type]').forEach(r => r.addEventListener('change', () => { customMode = false; drawPicker(); }));
 
-$('list').addEventListener('click', e => {
-  const id = e.target.dataset.del;
-  if (!id) return;
-  items = items.filter(i => String(i.id) !== id);
-  save();
-  render();
+$('debt').addEventListener('input', () => {
+  const v = parseAmount($('debt').value);
+  debt.amount = v > 0 ? v : 0; saveDebt(); render();
 });
-
+$('debtUseBalance').addEventListener('change', () => { debt.useBalance = $('debtUseBalance').checked; saveDebt(); render(); });
+$('prevMonth').addEventListener('click', () => { view = view.m === 0 ? { y: view.y - 1, m: 11 } : { y: view.y, m: view.m - 1 }; render(); });
+$('nextMonth').addEventListener('click', () => { view = view.m === 11 ? { y: view.y + 1, m: 0 } : { y: view.y, m: view.m + 1 }; render(); });
+$('more').addEventListener('click', () => { histLimit += 30; drawHistory(); });
 $('currency').addEventListener('change', () => {
   try { localStorage.setItem(CUR_KEY, $('currency').value); } catch {}
   render();
 });
-
-$('debt').addEventListener('input', () => {
-  const v = parseAmount($('debt').value);
-  debt.amount = v > 0 ? v : 0;
-  saveDebt();
-  render();
-});
-$('debtUseBalance').addEventListener('change', () => {
-  debt.useBalance = $('debtUseBalance').checked;
-  saveDebt();
-  render();
-});
-$('prevMonth').addEventListener('click', () => {
-  view = view.m === 0 ? { y: view.y - 1, m: 11 } : { y: view.y, m: view.m - 1 };
-  render();
-});
-$('nextMonth').addEventListener('click', () => {
-  view = view.m === 11 ? { y: view.y + 1, m: 0 } : { y: view.y, m: view.m + 1 };
-  render();
+let resizeTimer, lastW = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (lastData && innerWidth !== lastW) { lastW = innerWidth; drawCharts(lastData); } }, 120);
 });
 
 $('date').value = today();
 load();
+lastW = innerWidth;
 render();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
